@@ -1,0 +1,124 @@
+
+
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'java'
+    id 'maven' // will be depricated and replaced by maven-publish in gradle 7.0
+}
+import org.apache.tools.ant.filters.ReplaceTokens
+import java.text.SimpleDateFormat
+import java.util.Date
+
+def versionPropsFile = file('version.properties')
+def versionBuild
+def major
+def minor
+def revision
+
+group = 'org.bluemoondev.blutilities'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+def versionFile = 'src/main/java/org/bluemoondev/blutilities/Blutil.java'
+def tempDir = 'build/tmp/sourcesCache'
+def versionFileName = 'Blutil.java'
+
+repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    api 'org.apache.commons:commons-math3:3.6.1'
+
+    api 'com.google.guava:guava:29.0-jre'
+
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.13'
+}
+
+eclipse {
+    classpath {
+       downloadSources = true
+       downloadJavadoc = true
+    }
+
+    project {
+      name = 'Blutilities4j'
+    }
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+jar {
+  manifest {
+    attributes('implementation-Title': project.name, 'implementation-Version': project.version)
+  }
+}
+
+def getCurrentTimestamp() {
+  Date today = new Date()
+  SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy_hh-mm")
+  return sdf.format(today)
+}
+
+
+if(versionPropsFile.canRead()){
+  def Properties versionProps = new Properties()
+  versionProps.load(new FileInputStream(versionPropsFile))
+  versionBuild = versionProps['VERSION_BUILD'].toInteger()
+  major = versionProps['MAJOR'].toInteger()
+  minor = versionProps['MINOR'].toInteger()
+  revision = versionProps['REVISION'].toInteger()
+}else{
+  throw new FileNotFoundException("Could not find the version.properties file")
+}
+
+ext.autoIncrementBuildNumber = {
+  if(versionPropsFile.canRead()){
+    def Properties versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+    versionBuild = versionProps['VERSION_BUILD'].toInteger() + 1
+    versionProps['VERSION_BUILD'] = versionBuild.toString()
+    versionProps.store(versionPropsFile.newWriter(), null)
+  }else {
+    throw new FileNotFoundException("Could not find the version.properties file")
+  }
+}
+
+//version = '0.0.0.build-' + versionBuild + '.date-' + getCurrentTimestamp()
+version = major + '.' + minor + '.' + revision + '.' + versionBuild
+
+compileJava.doFirst {
+  copy {
+    from(versionFile)
+    into(tempDir)
+  }
+
+  ant.replace(file: versionFile, token: '${version}', value: version)
+}
+
+compileJava.doLast {
+  copy {
+    from(tempDir + '/' + versionFileName)
+    into(project.file(versionFile).parent)
+  }
+}
+println 'Building ' + project.name + ', Version: ' + version
+
+
+gradle.taskGraph.whenReady {taskGraph -> 
+  if(taskGraph.hasTask(build)){
+    autoIncrementBuildNumber()
+  }else if(taskGraph.hasTask(install)){
+    autoIncrementBuildNumber()
+  }
+}
+
+
+
