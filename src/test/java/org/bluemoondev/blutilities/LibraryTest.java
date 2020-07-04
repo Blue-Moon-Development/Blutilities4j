@@ -5,11 +5,63 @@ package org.bluemoondev.blutilities;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+
 import org.junit.Test;
+
+import org.bluemoondev.blutilities.generics.AbstractType;
+import org.bluemoondev.blutilities.generics.GenericsUtil;
+import org.bluemoondev.blutilities.generics.IType;
+import org.bluemoondev.blutilities.generics.ParameterizedClass;
 
 public class LibraryTest {
     @Test public void testSomeLibraryMethod() {
         assertTrue("someLibraryMethod should return 'true'", Blutil.justATest("true"));
-        System.out.println("Success!");
     }
+    
+    @Test public void testTypeClass() {
+    	IType type = new AbstractType<String>() {};
+    	ParameterizedClass<Double> d = new ParameterizedClass<Double>() {};
+    	System.out.println(d.type);
+    	System.out.println(type.getTypeClass());
+    	assertSame(String.class.getName(), type.getTypeClass().getName());
+    }
+    
+    @Test public void testType() {
+    	File a = getInteger();
+    	System.out.println(a);
+    }
+    
+    @Test public void testPType() {
+    	boolean foo = getObj(true);
+    }
+    
+    public <T> T getInteger() {
+    	IType type = new AbstractType<T>() {};
+    	System.out.println(type.getTypeClass());
+
+    	return null;
+    }
+    
+    @Test public void testPClass() {
+    	String s = getSomething();
+    	System.out.println(s);
+    }
+    
+    public <T> T getSomething() {
+    	ParameterizedClass<T> clazz = new ParameterizedClass<T>() {};
+    	try {
+			return clazz.create();
+		} catch (InstantiationException | IllegalAccessException ex) {
+			ex.printStackTrace();
+		}
+    	return null;
+    }
+    
+    public <T> T getObj(T something) {
+    	System.out.println(GenericsUtil.getClass(something));
+    	return something;
+    }
+
+
 }

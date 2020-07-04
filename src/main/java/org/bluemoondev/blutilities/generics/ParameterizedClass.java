@@ -14,23 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.bluemoondev.blutilities;
+package org.bluemoondev.blutilities.generics;
+
+import com.google.common.reflect.TypeToken;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
- * <strong>File:</strong> Blutil.java<br>
+ * <strong>File:</strong> ParameterizedClass.java<br>
  * <p>
  * TODO: Add description
  * </p>
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-public class Blutil {
+public abstract class ParameterizedClass<T> {
 	
-	public static final String VERSION = "${version}";
+	public final TypeToken<T> token = new TypeToken<T>(getClass()) {};
+	public final Class<T> type = (Class<T>) token.getRawType();
 	
-	public static boolean justATest(String bool) {
-		return bool.equalsIgnoreCase("true");
+	public T create() throws InstantiationException, IllegalAccessException {
+		return (T) token.getRawType().newInstance();
 	}
 
 }
