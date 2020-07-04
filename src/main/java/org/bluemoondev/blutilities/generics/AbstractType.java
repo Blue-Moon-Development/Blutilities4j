@@ -13,8 +13,6 @@
  */
 package org.bluemoondev.blutilities.generics;
 
-import java.lang.reflect.ParameterizedType;
-
 /**
  * <strong>Project:</strong> Blutilities4j<br>
  * <strong>File:</strong> AbstractType.java<br>
@@ -25,6 +23,8 @@ import java.lang.reflect.ParameterizedType;
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
 public abstract class AbstractType<T> implements IType {
+	
+	//TODO Maybe add some sort of reflection, so classes that implement IType automatically get this method?
 
 	@Override
 	public Class getTypeClass() {
