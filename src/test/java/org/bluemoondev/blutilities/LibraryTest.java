@@ -6,25 +6,42 @@ package org.bluemoondev.blutilities;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.ParseException;
 import org.junit.Test;
 
+import org.bluemoondev.blutilities.cli.Argument;
+import org.bluemoondev.blutilities.cli.ArgumentUtil;
 import org.bluemoondev.blutilities.generics.AbstractType;
 import org.bluemoondev.blutilities.generics.GenericsUtil;
 import org.bluemoondev.blutilities.generics.IType;
 
 public class LibraryTest {
-    @Test public void testSomeLibraryMethod() {
+	
+	
+	@Argument(name = "test_str", shortcut = "s", required = true)
+	private String testArg;
+	
+	@Argument(name = "test_int", shortcut = "i")
+	private int testArg2;
+	
+    public void testSomeLibraryMethod() {
         assertTrue("someLibraryMethod should return 'true'", Blutil.justATest("true"));
     }
     
     
-    @Test public void testType() {
+   public void testType() {
     	File a = getInteger();
     	System.out.println(a);
     }
     
-    @Test public void testPType() {
+    public void testPType() {
     	boolean foo = getObj(true);
     }
     
@@ -40,6 +57,85 @@ public class LibraryTest {
     	System.out.println(GenericsUtil.getClass(something));
     	return something;
     }
+    
 
+    @Test public void testArgParser() {
+    	// -n "John Smith" -a 27
+    	String[] passedArgs = {"-s", "\"John", "Smith\"", "-i", "27"};
+    	
+    	List<String> cache = new ArrayList<>();
+    	List<String> actualArgs = new ArrayList<>();
+    	boolean newArg = true;
+    	for(int i = 0; i < passedArgs.length; i++) {
+    		String s = passedArgs[i];
+    		
+    		if(!newArg && s.endsWith("\"")) {
+    			cache.add(s.substring(0, s.length() - 1));
+    			newArg = true;
+    			StringBuilder sb = new StringBuilder();
+    			for(int j = 0; j < cache.size() - 1; j++) {
+    				sb.append(cache.get(j)).append(" ");
+    			}
+    			sb.append(cache.get(cache.size() - 1));
+    			actualArgs.add(sb.toString());
+    			cache.clear();
+    			continue;
+    		}
+    		
+    		if(!newArg) {
+    			cache.add(s);
+    			continue;
+    		}
+    		
+    		if(s.startsWith("\"")) {
+    			cache.add(s.substring(1));
+    			newArg = false;
+    			continue;
+    		}
+    		
+    		actualArgs.add(s);
+    	}
+    	
+    	CommandLineParser parser = new DefaultParser();
+    	HelpFormatter formatter = new HelpFormatter();
+    	CommandLine cmd = null;
+    	String[] useArgs = new String[actualArgs.size()];
+    	useArgs = actualArgs.toArray(useArgs);
+    	for(String s : useArgs) {
+    		System.out.println(s);
+    	}
+    	
+    	try {
+			cmd = parser.parse(ArgumentUtil.getOptions(getClass()), useArgs);
+		} catch (ParseException ex) {
+			ex.printStackTrace();
+			formatter.printHelp("utility", ArgumentUtil.getOptions(getClass()));
+		}
+    	
+//    	try {
+//			cmd = parser.parse(ArgumentUtil.getOptions(args), useArgs);
+//		} catch (ParseException ex) {
+//			ex.printStackTrace();
+//			formatter.printHelp("utility-name", ArgumentUtil.getOptions(args));
+//			System.exit(1);
+//		}
+    	
+    	testArg = cmd.getOptionValue("test_str");
+		try {
+			testArg2 = Integer.parseInt(cmd.getOptionValue("test_int", "18"));
+			//TODO getParsedOptionValue doesnt seem to work
+//			System.out.println(cmd.getParsedOptionValue("test_int").getClass());
+//			testArg2 = (int) cmd.getParsedOptionValue("test_int");
+		} catch (NumberFormatException /*| ParseException */ex) {
+			ex.printStackTrace();
+		}
+    	
+    	System.out.println("Name: " + testArg + ", Age: " + testArg2);
+    	formatter.printHelp("utility", ArgumentUtil.getOptions(getClass()));
+    }
+    
+    public static void main(String[] args) {
+		new LibraryTest().testArgParser();
+	}
 
 }

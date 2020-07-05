@@ -35,6 +35,8 @@ dependencies {
 
     api 'com.google.guava:guava:29.0-jre'
 
+    api 'commons-cli:commons-cli:1.4'
+
     // Use JUnit test framework
     testImplementation 'junit:junit:4.13'
 }
