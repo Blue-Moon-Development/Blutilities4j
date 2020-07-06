@@ -17,10 +17,11 @@
 package org.bluemoondev.blutilities.cli;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-
 import org.bluemoondev.blutilities.Blutil;
 
 /**
@@ -35,9 +36,17 @@ import org.bluemoondev.blutilities.Blutil;
 public class ArgumentUtil {
 	
 	//TODO Deal with per command options and spaces
-	public static Options getOptions(Class<?> clazz) {
+	public static Options getOptions(List<OptionWrapper> wrappers) {
 		Options options = new Options();
+		for(OptionWrapper ow : wrappers) {
+			options.addOption(ow.getOption());
+		}
 		
+		return options;
+	}
+	
+	public static List<OptionWrapper> getArguments(Class<?> clazz){
+		List<OptionWrapper> opts = new ArrayList<>();
 		for(Field f : clazz.getDeclaredFields()) {
 			if(f.isAnnotationPresent(Argument.class)) {
 				Argument a = f.getAnnotation(Argument.class);
@@ -45,13 +54,14 @@ public class ArgumentUtil {
 				o.setRequired(a.required());
 				o.setType(Blutil.getClassForPrimitive(f.getType()));
 				o.setArgName(f.getType().getSimpleName());
-				//TODO pass along info such as a.allowSpaces() and a.defaultValue()
-				options.addOption(o);
+				opts.add(new OptionWrapper(o, a.allowSpaces(), a.defaultValue()));
 			}
 		}
 		
-		return options;
+		return opts;
 	}
+	
+	
 	
 
 }

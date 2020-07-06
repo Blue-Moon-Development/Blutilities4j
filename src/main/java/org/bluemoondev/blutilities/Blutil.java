@@ -13,6 +13,10 @@
  */
 package org.bluemoondev.blutilities;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * <strong>Project:</strong> Blutilities4j<br>
  * <strong>File:</strong> Blutil.java<br>
@@ -41,5 +45,13 @@ public class Blutil {
 		if (primitive.equals(Byte.TYPE)) return Byte.class;
 		return primitive;
 	}
+	
+	
+	public static <T> T[] arrayFromList(List<T> list) {
+		T[] arr = (T[]) Array.newInstance(list.get(0).getClass(), list.size());
+		arr = list.toArray(arr);
+		return arr;
+	}
+	
 
 }
