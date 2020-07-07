@@ -37,6 +37,10 @@ dependencies {
 
     api 'commons-cli:commons-cli:1.4'
 
+    api 'ch.qos.logback:logback-classic:1.2.3'
+
+    api 'com.rabbitmq:amqp-client:5.7.1'
+
     // Use JUnit test framework
     testImplementation 'junit:junit:4.13'
 }

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.bluemoondev.blutilities.cli;
+package org.bluemoondev.blutilities.annotations;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -23,32 +23,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
-@Target(FIELD)
+@Target(TYPE)
 /**
  * <strong>Project:</strong> Blutilities4j<br>
- * <strong>File:</strong> Argument.java<br>
+ * <strong>File:</strong> Command.java<br>
  * <p>
  * TODO: Add description
  * </p>
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-public @interface Argument {
-	
-	public String shortcut();
-	
-	public String name();
-	
-	public String desc() default "";
-	
-	public String cmd() default "";
-	
-	public String regex() default "*";
-	
-	public String defaultValue() default "";
-	
-	public boolean required() default false;
-	
-	public boolean hasArgs() default true;
+public @interface Command {
+    
+    public String name();
+    public boolean subCmds() default false;
+    public boolean useCli() default false;
+    public boolean allowNoArgs() default false;
 
 }

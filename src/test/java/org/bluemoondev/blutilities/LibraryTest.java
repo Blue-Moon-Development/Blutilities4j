@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -19,6 +20,8 @@ import org.junit.Test;
 import org.bluemoondev.blutilities.cli.Argument;
 import org.bluemoondev.blutilities.cli.ArgumentParser;
 import org.bluemoondev.blutilities.cli.ArgumentUtil;
+import org.bluemoondev.blutilities.cli.CommandParser;
+import org.bluemoondev.blutilities.cli.Helper;
 import org.bluemoondev.blutilities.generics.AbstractType;
 import org.bluemoondev.blutilities.generics.GenericsUtil;
 import org.bluemoondev.blutilities.generics.IType;
@@ -62,14 +65,17 @@ public class LibraryTest {
 
     @Test public void testArgParser() {
     	// -n "John Smith" -a 27
-    	String[] passedArgs = {"-n", "\"John", "Smith\"", "-a", "27"};
-    	ArgumentParser parser = new ArgumentParser("Test Parser");
-    	parser.parse(getClass(), passedArgs, (s, o) -> {
-    		parser.formatHelp(s, o);
-    	});
-    	
-    	System.out.println("Name: " + parser.get("name"));
-    	System.out.println("Age: " + parser.get("age"));
+//    	String[] passedArgs = {"create", "-n", "\"John", "Smith\"", "--age", "27"};
+    	String[] passedArgs = {"\"John", "Smith\"", "27"};
+    	TestCommand cmd = new TestCommand();
+    	CommandParser cmdParser = new CommandParser();
+    	cmdParser.init(TestCommand.class);
+    	if(cmdParser.parse(passedArgs, true, (u, o) -> {
+    	    Helper helper = new Helper();
+    	    System.err.println(helper.getFormatted(u, o));
+    	})) {
+    	    cmd.run(passedArgs, cmdParser);
+    	}
     }
     
     public static void main(String[] args) {

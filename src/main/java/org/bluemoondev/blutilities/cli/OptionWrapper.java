@@ -26,38 +26,39 @@ import org.apache.commons.cli.Option;
  */
 public class OptionWrapper {
 
-	private Option	option;
-	private boolean	allowSpaces;
-	private String	defaultValue;
+    private Option option;
+    private String defaultValue;
+    private String cmd;
+    private String regex;
 
-	/**
-	 * @param option       The actual <code>Option</code> instance
-	 * @param allowSpaces  Should the option's arguments be allowed to have spaces?
-	 * @param defaultValue The default value for this option, null if there is no
-	 *                     default
-	 */
-	public OptionWrapper(Option option, boolean allowSpaces, String defaultValue) {
-		this.option = option;
-		this.allowSpaces = allowSpaces;
-		this.defaultValue = defaultValue;
-	}
+    /**
+     * @param option       The actual <code>Option</code> instance
+     * @param allowSpaces  Should the option's arguments be allowed to have spaces?
+     * @param defaultValue The default value for this option, null if there is no
+     *                     default
+     */
+    public OptionWrapper(Option option, String defaultValue, String cmd) {
+        this.option = option;
+        this.defaultValue = defaultValue;
+        this.cmd = cmd;
+        regex = "*";
+    }
 
-	public OptionWrapper(Option option, boolean allowSpaces) {
-		this(option, allowSpaces, null);
-	}
+    public OptionWrapper(Option option, String cmd) {
+        this(option, null, cmd);
+    }
+    
+    public OptionWrapper setRegex(String regex) {
+        this.regex = regex;
+        return this;
+    }
 
-	public OptionWrapper(Option option, String defaultValue) {
-		this(option, false, defaultValue);
-	}
+    public Option getOption() { return this.option; }
 
-	public OptionWrapper(Option option) {
-		this(option, false, null);
-	}
-	
-	public Option getOption() { return this.option; }
-
-	public boolean shouldAllowSpaces() { return this.allowSpaces; }
-	
-	public String getDefaultValue() { return this.defaultValue; }
+    public String getDefaultValue() { return this.defaultValue; }
+    
+    public String getCmd() { return this.cmd; }
+    
+    public String getRegex() { return this.regex; }
 
 }
