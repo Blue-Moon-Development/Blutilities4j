@@ -11,7 +11,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.bluemoondev.blutilities.cli;
+package org.bluemoondev.blutilities.commands;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>

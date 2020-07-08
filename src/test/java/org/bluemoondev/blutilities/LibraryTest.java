@@ -19,9 +19,9 @@ import org.junit.Test;
 import org.bluemoondev.blutilities.annotations.Argument;
 import org.bluemoondev.blutilities.cli.ArgumentParser;
 import org.bluemoondev.blutilities.cli.ArgumentUtil;
-import org.bluemoondev.blutilities.cli.CommandParser;
 import org.bluemoondev.blutilities.cli.Helper;
 import org.bluemoondev.blutilities.collections.ArrayUtil;
+import org.bluemoondev.blutilities.commands.CommandParser;
 import org.bluemoondev.blutilities.errors.Errors;
 import org.bluemoondev.blutilities.generics.AbstractType;
 import org.bluemoondev.blutilities.generics.GenericsUtil;
@@ -120,9 +120,12 @@ public class LibraryTest {
     }
 
     public static void main(String[] args) {
-        new LibraryTest().testArgParser();
-        new LibraryTest().testCliArgParser();
-        new LibraryTest().testCliSubArgParser();
+//        new LibraryTest().testArgParser();
+//        new LibraryTest().testCliArgParser();
+//        new LibraryTest().testCliSubArgParser();
+        for(Errors e : Errors.values()) {
+            System.out.println(e);
+        }
     }
 
 }

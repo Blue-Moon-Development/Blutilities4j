@@ -15,8 +15,8 @@ package org.bluemoondev.blutilities;
 
 import org.bluemoondev.blutilities.annotations.Argument;
 import org.bluemoondev.blutilities.annotations.Command;
-import org.bluemoondev.blutilities.cli.CommandParser;
-import org.bluemoondev.blutilities.cli.ICommand;
+import org.bluemoondev.blutilities.commands.CommandParser;
+import org.bluemoondev.blutilities.commands.ICommand;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>

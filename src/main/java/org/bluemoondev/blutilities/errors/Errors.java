@@ -24,18 +24,42 @@ package org.bluemoondev.blutilities.errors;
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-public class Errors {
+public enum Errors {
 
-    public static final int SUCCESS  = 0x0;
-    public static final int NO_ERROR = SUCCESS;
+    SUCCESS ( "No error" ),
+    FAILURE ( "Failure" ),
+    COMMAND_PARSER_NOT_ENOUGH_ARGS ( "Insufficient number of arguments" ),
+    COMMAND_PARSER_NUMBER_EXPECTED ( "Argument was expected to be a number" ),
+    COMMAND_PARSER_NULL_OR_EMPTY_ARGS ( "A list of arguments was expected but could not be found. "
+                                        + "Argument list was NULL or EMPTY" ),
+    COMMAND_PARSER_INVALID_SUB_COMMAND ( "The sub command is invalid" ),
+    COMMAND_PARSER_CLI_FAILURE ( "CLI parsing failed" ),
+    COMMAND_PARSER_NO_PERMISSION ( "No permission to run this command" );
 
-    public static final int UNKNOWN = 0x1, UNSPECIFIED = UNKNOWN, FAILURE = UNKNOWN;
+    public static final Errors NO_ERROR    = SUCCESS;
+    public static final Errors UNKNOWN     = FAILURE;
+    public static final Errors UNSPECIFIED = FAILURE;
 
-    public static final int COMMAND_PARSER_NOT_ENOUGH_ARGS     = 0x2;
-    public static final int COMMAND_PARSER_NUMBER_EXPECTED     = 0x3;
-    public static final int COMMAND_PARSER_NULL_OR_EMPTY_ARGS  = 0x4;
-    public static final int COMMAND_PARSER_INVALID_SUB_COMMAND = 0x5;
-    public static final int COMMAND_PARSER_CLI_FAILURE         = 0x6;
-    public static final int COMMAND_PARSER_NO_PERMISSION       = 0x7;
+    final int    code;
+    final String msg;
 
+    Errors(String msg) {
+        this.code = CodeGenerator.getNextCode();
+        this.msg = msg;
+    }
+
+    public int getCode() { return this.code; }
+
+    public String getMsg() { return this.msg; }
+
+    @Override
+    public String toString() {
+        return "Error Code: " + String.format("0x%08X", code) + " (" + msg + ")";
+    }
+
+    private static class CodeGenerator {
+        private static int code = 0;
+
+        public static int getNextCode() { return code++; }
+    }
 }

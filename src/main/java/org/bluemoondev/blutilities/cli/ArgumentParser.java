@@ -13,6 +13,7 @@
  */
 package org.bluemoondev.blutilities.cli;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,21 +43,21 @@ public class ArgumentParser {
     private String      utilityName;
     private Options     options;
 
-    private List<OptionWrapper>        wrappers;
-    private Map<String, OptionWrapper> wrapperMap;
+    private Map<String, OptionImpl> wrapperMap;
+    private List<OptionImpl> wrappers;
 
-    public ArgumentParser(String utilityName, List<OptionWrapper> wrappers) {
+    public ArgumentParser(String utilityName, Options options, List<OptionImpl> wrappers) {
         this.utilityName = utilityName;
-        wrapperMap = new HashMap<String, OptionWrapper>();
+        this.options = options;
+        wrapperMap = new HashMap<>();
         this.wrappers = wrappers;
-        options = new Options();
-        for (OptionWrapper ow : wrappers) {
-            options.addOption(ow.getOption());
-            wrapperMap.put(ow.getOption().getLongOpt(), ow);
+        
+        for(OptionImpl o : wrappers) {
+            wrapperMap.put(o.getLongOpt(), o);
         }
     }
 
-    public int parse(String[] args, Fallback error) {
+    public Errors parse(String[] args, Fallback error) {
         String[] actualArgs = ArrayUtil.combineArgsWithSpaces(args);
         CommandLineParser parser = new DefaultParser();
         try {
@@ -67,7 +68,7 @@ public class ArgumentParser {
                 String n = o.getLongOpt();
                 String v = get(n);
                 if (v != null) {
-                    Class<?> type = wrapperMap.get(n).getOption().getActualType();
+                    Class<?> type = wrapperMap.get(n).getActualType();
                     if (Checks.isNumber(type) && !Checks.isNumberOfType(type, v)) {
                         if (Checks.isNotNull(error)) error.onError(utilityName, options);
                         return Errors.COMMAND_PARSER_NUMBER_EXPECTED;
@@ -83,7 +84,7 @@ public class ArgumentParser {
 
     }
 
-    public int parse(String[] args) {
+    public Errors parse(String[] args) {
         return parse(args, null);
     }
 
@@ -97,7 +98,7 @@ public class ArgumentParser {
     public String get(String name) {
         if (cmd == null) return null;
         if (!wrapperMap.containsKey(name)) return null;
-        if (!wrapperMap.get(name).getOption().hasArg()) return Boolean.toString(cmd.hasOption(name));
+        if (!wrapperMap.get(name).hasArg()) return Boolean.toString(cmd.hasOption(name));
         return cmd.getOptionValue(name, wrapperMap.get(name).getDefaultValue());
     }
 

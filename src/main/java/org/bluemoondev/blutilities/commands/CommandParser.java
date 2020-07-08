@@ -11,7 +11,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.bluemoondev.blutilities.cli;
+package org.bluemoondev.blutilities.commands;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,9 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.cli.Options;
 import org.bluemoondev.blutilities.annotations.Command;
-import org.bluemoondev.blutilities.cli.ArgumentParser.Fallback;
+import org.bluemoondev.blutilities.cli.ArgumentParser;
+import org.bluemoondev.blutilities.cli.ArgumentUtil;
+import org.bluemoondev.blutilities.cli.Helper;
+import org.bluemoondev.blutilities.cli.OptionImpl;
 import org.bluemoondev.blutilities.collections.ArrayUtil;
+import org.bluemoondev.blutilities.collections.UnmodifiableBiPair;
 import org.bluemoondev.blutilities.errors.Checks;
 import org.bluemoondev.blutilities.errors.Errors;
 
@@ -65,49 +70,53 @@ public class CommandParser {
         if (c.allowNoArgs()) return;
         name = c.name();
         useCli = c.useCli();
-        List<OptionWrapper> wrappers = ArgumentUtil.getArguments(clazz);
+        UnmodifiableBiPair<Options, List<OptionImpl>> pair = ArgumentUtil.getArguments(clazz);
+        List<OptionImpl> wrappers = pair.second;
         if (c.subCmds()) {
             hasSubCommands = true;
-            Map<String, List<OptionWrapper>> args = new HashMap<>();
-            for (OptionWrapper ow : wrappers) {
+            Map<String, UnmodifiableBiPair<Options, List<OptionImpl>>> args = new HashMap<>();
+            for (OptionImpl ow : wrappers) {
                 // if(ow.getCmd() == null || ow.getCmd() == "") throw new
                 // CommandException("Arguments expected to be mapped to sub commands in " +
                 // clazz.getName());
                 if (ow.getCmd() != null && ow.getCmd() != "") {
-                    String usage = ow.getCmd();
-                    if (ow.getOption().isRequired())
+                    String subCmd = ow.getCmd();
+                    if (ow.isRequired())
                         numArgsRequired++;
-                    if (args.containsKey(usage))
-                        args.get(usage).add(ow);
-                    else {
+                    if (args.containsKey(subCmd)) {
+                        args.get(subCmd).first.addOption(ow);
+                        args.get(subCmd).second.add(ow);
+                    }else {
                         subCommands.add(ow.getCmd());
-                        args.put(usage, new ArrayList<OptionWrapper>());
-                        args.get(usage).add(ow);
+                        args.put(subCmd, new UnmodifiableBiPair<Options, List<OptionImpl>>(new Options(),
+                                                                                           new ArrayList<OptionImpl>()));
+                        args.get(subCmd).first.addOption(ow);
+                        args.get(subCmd).second.add(ow);
                         if (!useCli)
-                            helpMap.put(usage, name + " " + usage);
+                            helpMap.put(subCmd, name + " " + subCmd);
                     }
                 }
             }
 
             args.forEach((k, v) -> {
-                argParsers.put(k, new ArgumentParser(k, v));
+                argParsers.put(k, new ArgumentParser(k, v.first, v.second));
                 if (useCli) {
                     Helper helper = new Helper();
                     helpMap.put(k, helper
                             .getFormatted(argParsers.get(k).getUtilityName(), argParsers.get(k).getOptions()));
                 }
-                String[] strs = new String[v.size()];
+                String[] strs = new String[v.second.size()];
                 Class<?>[] types = new Class<?>[wrappers.size()];
                 for (int i = 0; i < strs.length; i++) {
-                    strs[i] = v.get(i).getOption().getLongOpt();
-                    types[i] = v.get(i).getOption().getActualType();
-                    String key = v.get(i).getCmd();
+                    strs[i] = v.second.get(i).getLongOpt();
+                    types[i] = v.second.get(i).getActualType();
+                    String key = v.second.get(i).getCmd();
                     if (!useCli)
                         helpMap.put(key, helpMap.get(key) + " " + strs[i]);
-                    defaultValues.put(strs[i], v.get(i).getDefaultValue());
+                    defaultValues.put(strs[i], v.second.get(i).getDefaultValue());
                 }
-                argNames.put(v.get(0).getCmd(), strs);
-                argTypes.put(v.get(0).getCmd(), types);
+                argNames.put(v.second.get(0).getCmd(), strs);
+                argTypes.put(v.second.get(0).getCmd(), types);
             });
 
         } else {
@@ -116,17 +125,17 @@ public class CommandParser {
             if (!useCli)
                 helpMap.put(name, name);
             for (int i = 0; i < wrappers.size(); i++) {
-                OptionWrapper ow = wrappers.get(i);
-                if (ow.getOption().isRequired()) numArgsRequired++;
-                strs[i] = ow.getOption().getLongOpt();
-                types[i] = ow.getOption().getActualType();
+                OptionImpl ow = wrappers.get(i);
+                if (ow.isRequired()) numArgsRequired++;
+                strs[i] = ow.getLongOpt();
+                types[i] = ow.getActualType();
                 if (!useCli)
                     helpMap.put(name, helpMap.get(name) + " " + strs[i]);
                 defaultValues.put(strs[i], ow.getDefaultValue());
             }
             argNames.put(c.name(), strs);
             argTypes.put(c.name(), types);
-            argParsers.put(c.name(), new ArgumentParser(c.name(), wrappers));
+            argParsers.put(c.name(), new ArgumentParser(c.name(), pair.first, pair.second));
             if (useCli) {
                 Helper helper = new Helper();
                 helpMap.put(name, helper
@@ -149,7 +158,7 @@ public class CommandParser {
         return getArgParser(name).get(argName);
     }
 
-    public int parseWithCLI(String[] args) {
+    public Errors parseWithCLI(String[] args) {
         if (!hasSubCommands)
             return getArgParser(name).parse(args);
         else {
@@ -165,7 +174,7 @@ public class CommandParser {
         return Errors.FAILURE;
     }
 
-    public int parseWithoutCli(String[] args) {
+    public Errors parseWithoutCli(String[] args) {
         if (args == null || args.length == 0) return Errors.COMMAND_PARSER_NULL_OR_EMPTY_ARGS;
         if (hasSubCommands) {
             if (!subCommands.contains(args[0])) return Errors.COMMAND_PARSER_INVALID_SUB_COMMAND;
@@ -215,7 +224,7 @@ public class CommandParser {
     // etc...
     // });
     public void parse(String[] args, boolean canRun, CommandFallback cmdFallback) {
-        int error = Errors.SUCCESS;
+        Errors error = Errors.SUCCESS;
         if (!canRun) error = Errors.COMMAND_PARSER_NO_PERMISSION;
         if (useCli) error = parseWithCLI(args);
         else error = parseWithoutCli(ArrayUtil.combineArgsWithSpaces(args));
@@ -229,11 +238,9 @@ public class CommandParser {
         });
         return sb.toString();
     }
-    
+
     public String getHelp(String subCmd) {
-        if(!argParsers.containsKey(subCmd)) {
-            return getHelp();
-        }
+        if (!argParsers.containsKey(subCmd)) { return getHelp(); }
         return helpMap.get(subCmd);
     }
 
@@ -241,7 +248,7 @@ public class CommandParser {
     public interface CommandFallback {
         // TODO Some how allow optional parameters for cmd name and options to get help
         // format for cli?
-        public void fallback(int error);
+        public void fallback(Errors error);
     }
 
 }
