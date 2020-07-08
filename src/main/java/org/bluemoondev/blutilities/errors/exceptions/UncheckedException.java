@@ -1,0 +1,53 @@
+/*
+ * Copyright (C) 2020 Blue Moon Development
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.bluemoondev.blutilities.errors.exceptions;
+
+import java.io.PrintStream;
+
+import org.bluemoondev.blutilities.errors.Errors;
+
+/**
+ * <strong>Project:</strong> Blutilities4j<br>
+ * <strong>File:</strong> UncheckedException.java<br>
+ * <p>
+ * TODO: Add description
+ * </p>
+ *
+ * @author <a href = "https://bluemoondev.org"> Matt</a>
+ */
+public class UncheckedException extends RuntimeException {
+
+    protected Errors errorCode;
+
+    public UncheckedException(Errors errorCode, String msg) {
+        super(msg);
+        this.errorCode = errorCode;
+    }
+    
+    
+    public Errors getErrorCode() { return this.errorCode; }
+    
+    public String getText() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(errorCode).append("\n").append("Stacktrace:");
+        return sb.toString();
+    }
+    
+    @Override
+    public void printStackTrace(PrintStream s) {
+        s.println(getText());
+        super.printStackTrace(s);
+    }
+
+}

@@ -54,7 +54,7 @@ public class CommandParser {
     private boolean useCli;
     private int     numArgsRequired;
 
-    public CommandParser() {
+    public CommandParser(Class<?> clazz) {
         argParsers = new HashMap<>();
         values = new HashMap<>();
         argNames = new HashMap<>();
@@ -62,9 +62,12 @@ public class CommandParser {
         subCommands = new ArrayList<>();
         defaultValues = new HashMap<>();
         helpMap = new HashMap<>();
+        
+        
+        init(clazz);
     }
 
-    public void init(Class<?> clazz) {
+    private void init(Class<?> clazz) {
         if (!clazz.isAnnotationPresent(Command.class)) return;
         Command c = clazz.getAnnotation(Command.class);
         if (c.allowNoArgs()) return;
@@ -243,6 +246,10 @@ public class CommandParser {
         if (!argParsers.containsKey(subCmd)) { return getHelp(); }
         return helpMap.get(subCmd);
     }
+    
+    public String getName() { return this.name; }
+    
+    public boolean hasSubCommands() { return this.hasSubCommands; }
 
     @FunctionalInterface
     public interface CommandFallback {

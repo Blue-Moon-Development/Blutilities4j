@@ -89,14 +89,17 @@ public class ArrayUtil {
         arr = list.toArray(arr);
         return arr;
     }
-    
+
+    public static <T> boolean doesArrayContain(T[] arr, T elem) {
+        for (T t : arr) { if (t.equals(elem)) return true; }
+        return false;
+    }
+
     public static <T> String formatArray(T[] arr) {
         StringBuilder sb = new StringBuilder();
         sb.append("{ ");
-        for(int i = 0; i < arr.length - 1; i++) {
-            sb.append(arr[i]).append(", ");
-        }
-        
+        for (int i = 0; i < arr.length - 1; i++) { sb.append(arr[i]).append(", "); }
+
         sb.append(arr[arr.length - 1]).append(" }");
         return sb.toString();
     }

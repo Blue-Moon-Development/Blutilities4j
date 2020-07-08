@@ -6,26 +6,16 @@ package org.bluemoondev.blutilities;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
-import org.junit.Test;
 import org.bluemoondev.blutilities.annotations.Argument;
-import org.bluemoondev.blutilities.cli.ArgumentParser;
-import org.bluemoondev.blutilities.cli.ArgumentUtil;
-import org.bluemoondev.blutilities.cli.Helper;
-import org.bluemoondev.blutilities.collections.ArrayUtil;
+import org.bluemoondev.blutilities.commands.CommandHandler;
 import org.bluemoondev.blutilities.commands.CommandParser;
+import org.bluemoondev.blutilities.commands.ICommand;
 import org.bluemoondev.blutilities.errors.Errors;
 import org.bluemoondev.blutilities.generics.AbstractType;
 import org.bluemoondev.blutilities.generics.GenericsUtil;
 import org.bluemoondev.blutilities.generics.IType;
+import org.junit.Test;
 
 public class LibraryTest {
 
@@ -68,8 +58,7 @@ public class LibraryTest {
         // String[] passedArgs = {"create", "\"John", "Smith\"", "27"};
         String[] passedArgs = { "edit", "2.37" };
         TestCommand cmd = new TestCommand();
-        CommandParser cmdParser = new CommandParser();
-        cmdParser.init(TestCommand.class);
+        CommandParser cmdParser = new CommandParser(TestCommand.class);
         cmdParser.parse(passedArgs, true, error -> {
             if (error == Errors.SUCCESS) {
                 cmd.preRun(passedArgs[0], cmdParser);
@@ -77,7 +66,7 @@ public class LibraryTest {
             } else {
                 System.err.println("Non CLI command failed! " + error);
                 System.err.println(cmdParser.getHelp(passedArgs[0]));
-//                System.err.println(cmdParser.getHelp());
+                // System.err.println(cmdParser.getHelp());
             }
         });
     }
@@ -87,8 +76,7 @@ public class LibraryTest {
         String msg = "-p 3.1415 -s \"So this is how its going to be, eh?\" some extra stuff -f 21 then the number";
         String[] args = msg.split(" ");
         TestCLICommand cmd = new TestCLICommand();
-        CommandParser parser = new CommandParser();
-        parser.init(TestCLICommand.class);
+        CommandParser parser = new CommandParser(TestCLICommand.class);
         parser.parse(args, true, error -> {
             if (error == Errors.SUCCESS) {
                 cmd.preRun(null, parser);
@@ -106,8 +94,7 @@ public class LibraryTest {
         // String msg = "edit -l 45565";
         String[] args = msg.split(" ");
         TestCliSubCommand cmd = new TestCliSubCommand();
-        CommandParser parser = new CommandParser();
-        parser.init(TestCliSubCommand.class);
+        CommandParser parser = new CommandParser(TestCliSubCommand.class);
         parser.parse(args, true, error -> {
             if (error == Errors.SUCCESS) {
                 cmd.preRun(args[0], parser);
@@ -120,12 +107,20 @@ public class LibraryTest {
     }
 
     public static void main(String[] args) {
-//        new LibraryTest().testArgParser();
-//        new LibraryTest().testCliArgParser();
-//        new LibraryTest().testCliSubArgParser();
-        for(Errors e : Errors.values()) {
-            System.out.println(e);
-        }
+        // new LibraryTest().testArgParser();
+        // new LibraryTest().testCliArgParser();
+        // new LibraryTest().testCliSubArgParser();
+        for (Errors e : Errors.values()) { System.out.println(e); }
+
+        TestCLICommand cmd = new TestCLICommand();
+//        ICommand cmd = new BadCommand();
+        CommandHandler handler = new CommandHandler();
+        handler.addCommand(cmd);
+        String msg = "-p 3.1415 -s \"So this is how its going to be, eh?\" some extra stuff -f 21 then the number";
+        String[] passedArgs = msg.split(" ");
+        handler.execute("cli", passedArgs, true, (s, a) -> {
+            cmd.run();
+        });
     }
 
 }
