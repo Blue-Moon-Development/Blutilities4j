@@ -47,11 +47,7 @@ public class Blutil {
 	}
 	
 	
-	public static <T> T[] arrayFromList(List<T> list) {
-		T[] arr = (T[]) Array.newInstance(list.get(0).getClass(), list.size());
-		arr = list.toArray(arr);
-		return arr;
-	}
+
 	
 
 }

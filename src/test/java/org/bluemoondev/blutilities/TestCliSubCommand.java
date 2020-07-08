@@ -20,48 +20,48 @@ import org.bluemoondev.blutilities.cli.ICommand;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
- * <strong>File:</strong> TestCommand.java<br>
+ * <strong>File:</strong> TestCliSubCommand.java<br>
  * <p>
  * TODO: Add description
  * </p>
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-@Command(name = "test", useCli = false, subCmds = true)
-public class TestCommand implements ICommand {
+@Command(name = "clisub", subCmds = true, useCli = true)
+public class TestCliSubCommand implements ICommand {
 
-    @Argument(name = "name", shortcut = "n", desc = "Student's name", cmd = "create")
-    private String name;
+    @Argument(name = "sentence", shortcut = "s", desc = "Some sentence", cmd = "create")
+    private String sentence;
 
-    @Argument(name = "age", shortcut = "a", required = false, defaultValue = "18", desc = "Student's age",
+    @Argument(name = "length", shortcut = "l", desc = "Some int length", required = false, defaultValue = "57",
+              cmd = "edit")
+    private int length;
+
+    @Argument(name = "test", shortcut = "t", desc = "flag test with no args", hasArgs = false, required = false,
               cmd = "create")
-    private int age;
-
-    @Argument(name = "gpa", shortcut = "g", required = false, defaultValue = "3.0",
-              desc = "Student's grade point average", cmd = "edit")
-    private double gpa;
-
-    public void run(String subCmd) {
-        switch (subCmd) {
-            case "create":
-                System.out.println("Name: " + name);
-                System.out.println("Age: " + age);
-            break;
-            case "edit":
-                System.out.println("GPA: " + gpa);
-        }
-    }
+    private boolean test;
 
     @Override
     public void preRun(String subCmd, CommandParser parser) {
         switch (subCmd) {
             case "create":
-                name = parser.get("name");
-                age = Integer.parseInt(parser.get("age"));
+                sentence = parser.get("sentence");
+                test = Boolean.parseBoolean(parser.get("test"));
             break;
             case "edit":
-                gpa = Double.parseDouble(parser.get("gpa"));
+                length = Integer.parseInt(parser.get("length"));
+        }
+
+    }
+
+    public void run(String subCmd) {
+        switch (subCmd) {
+            case "create":
+                System.out.println("Sentence: " + sentence);
+                System.out.println("Was flag set? " + test);
             break;
+            case "edit":
+                System.out.println("Length: " + length);
         }
     }
 

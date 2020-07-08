@@ -15,6 +15,7 @@ package org.bluemoondev.blutilities.cli;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,19 +32,34 @@ import org.apache.commons.cli.Options;
  * <strong>Project:</strong> Blutilities4j<br>
  * <strong>File:</strong> Helper.java<br>
  * <p>
- * TODO: Add description
+ * An extension of Apache Commons CLI's
+ * {@link org.apache.commons.cli.HelpFormatter HelpFormatter} but provides
+ * methods to retrieve the formatted help text rather than simply printing it
+ * out only
  * </p>
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
 public class Helper extends HelpFormatter {
 
-    public String getFormatted(String cmdLineSyntax, Options options) {
+    public String getFormatted(String cmdLineSyntax, Options options, String header, String footer) {
         StringBuilder sb = new StringBuilder();
+
+        if (header != null && header.trim().length() > 0)
+            sb.append(header).append("\n");
+
         sb.append(getUsage(cmdLineSyntax, options));
         sb.append("\n");
         sb.append(getOptions(cmdLineSyntax, options));
+
+        if (footer != null && footer.trim().length() > 0)
+            sb.append("\n").append(footer);
+
         return sb.toString();
+    }
+
+    public String getFormatted(String cmd, Options options) {
+        return getFormatted(cmd, options, null, null);
     }
 
     public String getOptions(String cmdLineSyntax, Options options) {
@@ -51,12 +67,13 @@ public class Helper extends HelpFormatter {
         return renderOptions(sb, getWidth(), options, getLeftPadding(), getDescPadding()).toString();
     }
 
-    public String getUsage(String cmdLineSyntax, Options options) {
-        int argPos = cmdLineSyntax.indexOf(' ') + 1;
-        StringBuffer buff = new StringBuffer();
-        return renderWrappedText(buff, getWidth(), getSyntaxPrefix().length() + argPos, getSyntaxPrefix()
-                                                                                        + cmdLineSyntax).toString();
-    }
+    // public String getUsage(String cmdLineSyntax, Options options) {
+    // int argPos = cmdLineSyntax.indexOf(' ') + 1;
+    // StringBuffer buff = new StringBuffer();
+    // return renderWrappedText(buff, getWidth(), getSyntaxPrefix().length() +
+    // argPos, getSyntaxPrefix()
+    // + cmdLineSyntax).toString();
+    // }
 
     private Appendable renderWrappedTextBlock(StringBuffer sb, int width, int nextLineTabStop, String text) {
         try {
@@ -75,6 +92,86 @@ public class Helper extends HelpFormatter {
         }
 
         return sb;
+    }
+
+    public String getUsage(String app, Options options) {
+        // Initialize the string buffer
+        StringBuffer buff = new StringBuffer(getSyntaxPrefix()).append(app).append(" ");
+
+        // create a list for processed option groups
+        Collection<OptionGroup> processedGroups = new ArrayList<OptionGroup>();
+
+        List<Option> optList = new ArrayList<Option>(options.getOptions());
+        if (getOptionComparator() != null) { Collections.sort(optList, getOptionComparator()); }
+        // iterate over the options
+        for (Iterator<Option> it = optList.iterator(); it.hasNext();) {
+            // get the next Option
+            Option option = it.next();
+
+            // check if the option is part of an OptionGroup
+            OptionGroup group = options.getOptionGroup(option);
+
+            // if the option is part of a group
+            if (group != null) {
+                // and if the group has not already been processed
+                if (!processedGroups.contains(group)) {
+                    // add the group to the processed list
+                    processedGroups.add(group);
+
+                    // add the usage clause
+                    appendOptionGroup(buff, group);
+                }
+
+                // otherwise the option was displayed in the group
+                // previously so ignore it.
+            }
+
+            // if the Option is not part of an OptionGroup
+            else {
+                appendOption(buff, option, option.isRequired());
+            }
+
+            if (it.hasNext()) { buff.append(" "); }
+        }
+
+        return buff.toString();
+        // call printWrapped
+        // printWrapped(pw, width, buff.toString().indexOf(' ') + 1, buff.toString());
+    }
+
+    private void appendOptionGroup(StringBuffer buff, OptionGroup group) {
+        if (!group.isRequired()) { buff.append("["); }
+
+        List<Option> optList = new ArrayList<Option>(group.getOptions());
+        if (getOptionComparator() != null) { Collections.sort(optList, getOptionComparator()); }
+        // for each option in the OptionGroup
+        for (Iterator<Option> it = optList.iterator(); it.hasNext();) {
+            // whether the option is required or not is handled at group level
+            appendOption(buff, it.next(), true);
+
+            if (it.hasNext()) { buff.append(" | "); }
+        }
+
+        if (!group.isRequired()) { buff.append("]"); }
+    }
+
+    private void appendOption(StringBuffer buff, Option option, boolean required) {
+        if (!required) { buff.append("["); }
+
+        if (option.getOpt() != null) {
+            buff.append("-").append(option.getOpt());
+        } else {
+            buff.append("--").append(option.getLongOpt());
+        }
+
+        // if the Option has a value and a non blank argname
+        if (option.hasArg() && (option.getArgName() == null || option.getArgName().length() != 0)) {
+            buff.append(option.getOpt() == null ? getLongOptSeparator() : " ");
+            buff.append("<").append(option.getArgName() != null ? option.getArgName() : getArgName()).append(">");
+        }
+
+        // if the Option is not a required option
+        if (!required) { buff.append("]"); }
     }
 
 }

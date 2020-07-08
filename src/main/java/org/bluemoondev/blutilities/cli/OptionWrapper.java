@@ -26,7 +26,7 @@ import org.apache.commons.cli.Option;
  */
 public class OptionWrapper {
 
-    private Option option;
+    private OptionImpl option;
     private String defaultValue;
     private String cmd;
     private String regex;
@@ -37,14 +37,14 @@ public class OptionWrapper {
      * @param defaultValue The default value for this option, null if there is no
      *                     default
      */
-    public OptionWrapper(Option option, String defaultValue, String cmd) {
+    public OptionWrapper(OptionImpl option, String defaultValue, String cmd) {
         this.option = option;
         this.defaultValue = defaultValue;
         this.cmd = cmd;
         regex = "*";
     }
 
-    public OptionWrapper(Option option, String cmd) {
+    public OptionWrapper(OptionImpl option, String cmd) {
         this(option, null, cmd);
     }
     
@@ -53,7 +53,7 @@ public class OptionWrapper {
         return this;
     }
 
-    public Option getOption() { return this.option; }
+    public OptionImpl getOption() { return this.option; }
 
     public String getDefaultValue() { return this.defaultValue; }
     

@@ -16,70 +16,113 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.junit.Test;
-
-import org.bluemoondev.blutilities.cli.Argument;
+import org.bluemoondev.blutilities.annotations.Argument;
 import org.bluemoondev.blutilities.cli.ArgumentParser;
 import org.bluemoondev.blutilities.cli.ArgumentUtil;
 import org.bluemoondev.blutilities.cli.CommandParser;
 import org.bluemoondev.blutilities.cli.Helper;
+import org.bluemoondev.blutilities.collections.ArrayUtil;
+import org.bluemoondev.blutilities.errors.Errors;
 import org.bluemoondev.blutilities.generics.AbstractType;
 import org.bluemoondev.blutilities.generics.GenericsUtil;
 import org.bluemoondev.blutilities.generics.IType;
 
 public class LibraryTest {
-	
-	
-	@Argument(name = "name", shortcut = "n", required = true)
-	private String testArg;
-	
-	@Argument(name = "age", shortcut = "a")
-	private int testArg2;
-	
+
+    @Argument(name = "name", shortcut = "n", required = true)
+    private String testArg;
+
+    @Argument(name = "age", shortcut = "a")
+    private int testArg2;
+
     public void testSomeLibraryMethod() {
         assertTrue("someLibraryMethod should return 'true'", Blutil.justATest("true"));
     }
-    
-    
-   public void testType() {
-    	File a = getInteger();
-    	System.out.println(a);
+
+    public void testType() {
+        File a = getInteger();
+        System.out.println(a);
     }
-    
+
     public void testPType() {
-    	boolean foo = getObj(true);
+        boolean foo = getObj(true);
     }
-    
+
     public <T> T getInteger() {
-    	IType type = new AbstractType<T>() {};
-    	System.out.println(type.getTypeClass());
+        IType type = new AbstractType<T>() {};
+        System.out.println(type.getTypeClass());
 
-    	return null;
+        return null;
     }
-    
-    
+
     public <T> T getObj(T something) {
-    	System.out.println(GenericsUtil.getClass(something));
-    	return something;
+        System.out.println(GenericsUtil.getClass(something));
+        return something;
     }
-    
 
-    @Test public void testArgParser() {
-    	// -n "John Smith" -a 27
-//    	String[] passedArgs = {"create", "-n", "\"John", "Smith\"", "--age", "27"};
-    	String[] passedArgs = {"\"John", "Smith\"", "27"};
-    	TestCommand cmd = new TestCommand();
-    	CommandParser cmdParser = new CommandParser();
-    	cmdParser.init(TestCommand.class);
-    	if(cmdParser.parse(passedArgs, true, (u, o) -> {
-    	    Helper helper = new Helper();
-    	    System.err.println(helper.getFormatted(u, o));
-    	})) {
-    	    cmd.run(passedArgs, cmdParser);
-    	}
+    @Test
+    public void testArgParser() {
+        // -n "John Smith" -a 27
+        // String[] passedArgs = {"create", "-n", "\"John", "Smith\"", "--age", "27"};
+        // String[] passedArgs = {"\"John", "Smith\"", "27"};
+        // String[] passedArgs = {"create", "\"John", "Smith\"", "27"};
+        String[] passedArgs = { "edit", "2.37" };
+        TestCommand cmd = new TestCommand();
+        CommandParser cmdParser = new CommandParser();
+        cmdParser.init(TestCommand.class);
+        cmdParser.parse(passedArgs, true, error -> {
+            if (error == Errors.SUCCESS) {
+                cmd.preRun(passedArgs[0], cmdParser);
+                cmd.run(passedArgs[0]);
+            } else {
+                System.err.println("Non CLI command failed! " + error);
+                System.err.println(cmdParser.getHelp(passedArgs[0]));
+//                System.err.println(cmdParser.getHelp());
+            }
+        });
     }
-    
+
+    @Test
+    public void testCliArgParser() {
+        String msg = "-p 3.1415 -s \"So this is how its going to be, eh?\" some extra stuff -f 21 then the number";
+        String[] args = msg.split(" ");
+        TestCLICommand cmd = new TestCLICommand();
+        CommandParser parser = new CommandParser();
+        parser.init(TestCLICommand.class);
+        parser.parse(args, true, error -> {
+            if (error == Errors.SUCCESS) {
+                cmd.preRun(null, parser);
+                cmd.run();
+            } else {
+                System.err.println("CLI command failed! " + error);
+                System.err.println(parser.getHelp());
+            }
+        });
+    }
+
+    @Test
+    public void testCliSubArgParser() {
+        String msg = "create so like --test yeah -s \"hello this is a sentence. How are you doing?\" and stuff";
+        // String msg = "edit -l 45565";
+        String[] args = msg.split(" ");
+        TestCliSubCommand cmd = new TestCliSubCommand();
+        CommandParser parser = new CommandParser();
+        parser.init(TestCliSubCommand.class);
+        parser.parse(args, true, error -> {
+            if (error == Errors.SUCCESS) {
+                cmd.preRun(args[0], parser);
+                cmd.run(args[0]);
+            } else {
+                System.err.println("CLI command with sub cmds failled! " + error);
+                System.err.println(parser.getHelp(args[0]));
+            }
+        });
+    }
+
     public static void main(String[] args) {
-		new LibraryTest().testArgParser();
-	}
+        new LibraryTest().testArgParser();
+        new LibraryTest().testCliArgParser();
+        new LibraryTest().testCliSubArgParser();
+    }
 
 }

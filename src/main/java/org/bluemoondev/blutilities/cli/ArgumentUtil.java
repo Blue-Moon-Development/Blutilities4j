@@ -20,6 +20,7 @@ import java.util.List;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.bluemoondev.blutilities.Blutil;
+import org.bluemoondev.blutilities.annotations.Argument;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
@@ -45,9 +46,9 @@ public class ArgumentUtil {
             if (f.isAnnotationPresent(Argument.class)) {
                 Argument a = f.getAnnotation(Argument.class);
                 String desc = a.required() ? a.desc() : "[Optional] " + a.desc();
-                Option o = new Option(a.shortcut(), a.name(), a.hasArgs(), desc);
+                OptionImpl o = new OptionImpl(a.shortcut(), a.name(), a.hasArgs(), desc);
                 o.setRequired(a.required());
-                o.setType(Blutil.getClassForPrimitive(f.getType()));
+                o.setActualType(Blutil.getClassForPrimitive(f.getType()));
                 o.setArgName(f.getType().getSimpleName());
                 opts.add(new OptionWrapper(o, a.defaultValue(), a.cmd()).setRegex(a.regex()));
             }

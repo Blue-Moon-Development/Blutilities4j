@@ -13,6 +13,7 @@
  */
 package org.bluemoondev.blutilities.collections;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +32,12 @@ public class ArrayUtil {
 
     /**
      * When arguments are provided such that they look like:
-     * <code>Hello this is an argument named "john smith"</code>, this will convert
-     * <code>"john smith"</code> into a single string <code>john smith</code>
+     * <code>{ Hello, this, is, an, argument, named, "john, smith" }</code>, this
+     * will
+     * convert
+     * <code>"john smith"</code> into a single string <code>john smith</code> so
+     * that the resulting array looks like
+     * <code>{ Hello, this, is, an, argument, named, john smith }</code>
      * 
      * @param args The array to strip quotes into single elements
      * @return The new array
@@ -69,7 +74,31 @@ public class ArrayUtil {
             actualArgs.add(s);
         }
 
-        return Blutil.arrayFromList(actualArgs);
+        return arrayFromList(actualArgs);
+    }
+
+    /**
+     * Converts the given <code>List</code> to a standard array
+     * 
+     * @param <T>  the runtime type of the array to contain the collection
+     * @param list The <code>List</code> to convert
+     * @return The converted array
+     */
+    public static <T> T[] arrayFromList(List<T> list) {
+        T[] arr = (T[]) Array.newInstance(list.get(0).getClass(), list.size());
+        arr = list.toArray(arr);
+        return arr;
+    }
+    
+    public static <T> String formatArray(T[] arr) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{ ");
+        for(int i = 0; i < arr.length - 1; i++) {
+            sb.append(arr[i]).append(", ");
+        }
+        
+        sb.append(arr[arr.length - 1]).append(" }");
+        return sb.toString();
     }
 
 }

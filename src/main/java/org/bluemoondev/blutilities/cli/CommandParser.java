@@ -22,6 +22,8 @@ import java.util.Map;
 import org.bluemoondev.blutilities.annotations.Command;
 import org.bluemoondev.blutilities.cli.ArgumentParser.Fallback;
 import org.bluemoondev.blutilities.collections.ArrayUtil;
+import org.bluemoondev.blutilities.errors.Checks;
+import org.bluemoondev.blutilities.errors.Errors;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
@@ -37,8 +39,10 @@ public class CommandParser {
     private Map<String, ArgumentParser> argParsers;
     private Map<String, String>         values;
     private Map<String, String[]>       argNames;
+    private Map<String, Class<?>[]>     argTypes;
     private Map<String, String>         defaultValues;
     private List<String>                subCommands;
+    private Map<String, String>         helpMap;
 
     private boolean hasSubCommands;
     private String  name;
@@ -49,8 +53,10 @@ public class CommandParser {
         argParsers = new HashMap<>();
         values = new HashMap<>();
         argNames = new HashMap<>();
+        argTypes = new HashMap<>();
         subCommands = new ArrayList<>();
         defaultValues = new HashMap<>();
+        helpMap = new HashMap<>();
     }
 
     public void init(Class<?> clazz) {
@@ -68,7 +74,7 @@ public class CommandParser {
                 // CommandException("Arguments expected to be mapped to sub commands in " +
                 // clazz.getName());
                 if (ow.getCmd() != null && ow.getCmd() != "") {
-                    String usage = c.name() + " " + ow.getCmd();
+                    String usage = ow.getCmd();
                     if (ow.getOption().isRequired())
                         numArgsRequired++;
                     if (args.containsKey(usage))
@@ -77,31 +83,55 @@ public class CommandParser {
                         subCommands.add(ow.getCmd());
                         args.put(usage, new ArrayList<OptionWrapper>());
                         args.get(usage).add(ow);
+                        if (!useCli)
+                            helpMap.put(usage, name + " " + usage);
                     }
                 }
             }
 
             args.forEach((k, v) -> {
                 argParsers.put(k, new ArgumentParser(k, v));
+                if (useCli) {
+                    Helper helper = new Helper();
+                    helpMap.put(k, helper
+                            .getFormatted(argParsers.get(k).getUtilityName(), argParsers.get(k).getOptions()));
+                }
                 String[] strs = new String[v.size()];
+                Class<?>[] types = new Class<?>[wrappers.size()];
                 for (int i = 0; i < strs.length; i++) {
                     strs[i] = v.get(i).getOption().getLongOpt();
+                    types[i] = v.get(i).getOption().getActualType();
+                    String key = v.get(i).getCmd();
+                    if (!useCli)
+                        helpMap.put(key, helpMap.get(key) + " " + strs[i]);
                     defaultValues.put(strs[i], v.get(i).getDefaultValue());
                 }
                 argNames.put(v.get(0).getCmd(), strs);
+                argTypes.put(v.get(0).getCmd(), types);
             });
-
 
         } else {
             String[] strs = new String[wrappers.size()];
+            Class<?>[] types = new Class<?>[wrappers.size()];
+            if (!useCli)
+                helpMap.put(name, name);
             for (int i = 0; i < wrappers.size(); i++) {
                 OptionWrapper ow = wrappers.get(i);
                 if (ow.getOption().isRequired()) numArgsRequired++;
                 strs[i] = ow.getOption().getLongOpt();
+                types[i] = ow.getOption().getActualType();
+                if (!useCli)
+                    helpMap.put(name, helpMap.get(name) + " " + strs[i]);
                 defaultValues.put(strs[i], ow.getDefaultValue());
             }
             argNames.put(c.name(), strs);
+            argTypes.put(c.name(), types);
             argParsers.put(c.name(), new ArgumentParser(c.name(), wrappers));
+            if (useCli) {
+                Helper helper = new Helper();
+                helpMap.put(name, helper
+                        .getFormatted(argParsers.get(name).getUtilityName(), argParsers.get(name).getOptions()));
+            }
         }
     }
 
@@ -113,61 +143,105 @@ public class CommandParser {
         if (!useCli) return values.get(argName);
         if (hasSubCommands) {
             for (String s : subCommands)
-                if (getArgParser(name + " " + s).get(argName) != null)
-                    return getArgParser(name + " " + s).get(argName);
+                if (getArgParser(s).get(argName) != null)
+                    return getArgParser(s).get(argName);
         }
         return getArgParser(name).get(argName);
     }
 
-    public boolean parseWithCLI(String[] args, Fallback error) {
+    public int parseWithCLI(String[] args) {
         if (!hasSubCommands)
-            return getArgParser(name).parse(args, error);
+            return getArgParser(name).parse(args);
         else {
+            if (!subCommands.contains(args[0])) return Errors.COMMAND_PARSER_INVALID_SUB_COMMAND; // TODO get help
             for (String sub : subCommands) {
                 if (sub.equalsIgnoreCase(args[0])) {
                     String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
-                    return getArgParser(name + " " + sub).parse(newArgs, error);
+                    return getArgParser(sub).parse(newArgs);
                 }
             }
+
         }
-        return false;
+        return Errors.FAILURE;
     }
 
-    public boolean parseWithoutCli(String[] args) {
-        if (args == null || args.length == 0) return false;
+    public int parseWithoutCli(String[] args) {
+        if (args == null || args.length == 0) return Errors.COMMAND_PARSER_NULL_OR_EMPTY_ARGS;
         if (hasSubCommands) {
-            if (!subCommands.contains(args[0])) return false;
+            if (!subCommands.contains(args[0])) return Errors.COMMAND_PARSER_INVALID_SUB_COMMAND;
             for (String sub : subCommands) {
                 if (sub.equalsIgnoreCase(args[0])) {
                     String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
 
-                    if (newArgs.length < numArgsRequired) return false;
-                    for (int i = 0; i < newArgs.length; i++)
+                    if (newArgs.length < numArgsRequired) return Errors.COMMAND_PARSER_NOT_ENOUGH_ARGS;
+                    int len = argNames.get(sub).length < newArgs.length ? argNames.get(sub).length : newArgs.length;
+                    for (int i = 0; i < len; i++) {
+                        Class<?> type = argTypes.get(sub)[i];
+                        if (Checks.isNumber(type))
+                            if (!Checks.isNumberOfType(type, newArgs[i])) return Errors.COMMAND_PARSER_NUMBER_EXPECTED;
                         values.put(argNames.get(sub)[i], newArgs[i]);
-                    if(argNames.get(name).length > newArgs.length) {
-                        for(int i = newArgs.length; i < argNames.get(name).length; i++)
-                            values.put(argNames.get(name)[i], defaultValues.get(argNames.get(name)[i]));
                     }
-                    return true;
+                    if (argNames.get(sub).length > newArgs.length) {
+                        for (int i = newArgs.length; i < argNames.get(sub).length; i++)
+                            values.put(argNames.get(sub)[i], defaultValues.get(argNames.get(sub)[i]));
+                    }
+                    return Errors.SUCCESS;
                 }
             }
-        }else {
-            if(args.length < numArgsRequired) return false;
-            for (int i = 0; i < args.length; i++)
+        } else {
+            if (args.length < numArgsRequired) return Errors.COMMAND_PARSER_NOT_ENOUGH_ARGS;
+            int len = argNames.get(name).length < args.length ? argNames.get(name).length : args.length;
+            for (int i = 0; i < len; i++) {
+                Object type = argTypes.get(name)[i];
+                if (Checks.isNumber(type))
+                    if (!Checks.isNumberOfType(type, args[i])) return Errors.COMMAND_PARSER_NUMBER_EXPECTED;
                 values.put(argNames.get(name)[i], args[i]);
-            if(argNames.get(name).length > args.length) {
-                for(int i = args.length; i < argNames.get(name).length; i++)
+            }
+            if (argNames.get(name).length > args.length) {
+                for (int i = args.length; i < argNames.get(name).length; i++)
                     values.put(argNames.get(name)[i], defaultValues.get(argNames.get(name)[i]));
             }
-            return true;
+            return Errors.SUCCESS;
         }
-        return false;
+        return Errors.FAILURE;
     }
 
-    public boolean parse(String[] args, boolean canRun, Fallback error) {
-        if (!canRun) return false;
-        if (useCli) return parseWithCLI(args, error);
-        return parseWithoutCli(ArrayUtil.combineArgsWithSpaces(args));
+    // Instead of fallback, maybe a separate error collector for handling int
+    // returns?
+    // I.e -> parse(args, true, e -> {
+    // if(cmd.usesCli) str help = format cli help
+    // if(e == 1) print not enough arguments
+    // if(e == 2) expected sub command
+    // etc...
+    // });
+    public void parse(String[] args, boolean canRun, CommandFallback cmdFallback) {
+        int error = Errors.SUCCESS;
+        if (!canRun) error = Errors.COMMAND_PARSER_NO_PERMISSION;
+        if (useCli) error = parseWithCLI(args);
+        else error = parseWithoutCli(ArrayUtil.combineArgsWithSpaces(args));
+        cmdFallback.fallback(error);
+    }
+
+    public String getHelp() {
+        StringBuilder sb = new StringBuilder();
+        helpMap.forEach((k, v) -> {
+            sb.append(v).append("\n");
+        });
+        return sb.toString();
+    }
+    
+    public String getHelp(String subCmd) {
+        if(!argParsers.containsKey(subCmd)) {
+            return getHelp();
+        }
+        return helpMap.get(subCmd);
+    }
+
+    @FunctionalInterface
+    public interface CommandFallback {
+        // TODO Some how allow optional parameters for cmd name and options to get help
+        // format for cli?
+        public void fallback(int error);
     }
 
 }

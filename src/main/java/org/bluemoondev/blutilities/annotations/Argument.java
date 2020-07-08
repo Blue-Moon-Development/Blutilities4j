@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.bluemoondev.blutilities.cli;
+package org.bluemoondev.blutilities.annotations;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -47,7 +47,7 @@ public @interface Argument {
 	
 	public String defaultValue() default "";
 	
-	public boolean required() default false;
+	public boolean required() default true;
 	
 	public boolean hasArgs() default true;
 

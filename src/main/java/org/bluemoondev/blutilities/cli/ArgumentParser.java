@@ -13,7 +13,6 @@
  */
 package org.bluemoondev.blutilities.cli;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +20,12 @@ import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.bluemoondev.blutilities.Blutil;
 import org.bluemoondev.blutilities.collections.ArrayUtil;
+import org.bluemoondev.blutilities.errors.Checks;
+import org.bluemoondev.blutilities.errors.Errors;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
@@ -50,40 +50,60 @@ public class ArgumentParser {
         wrapperMap = new HashMap<String, OptionWrapper>();
         this.wrappers = wrappers;
         options = new Options();
-        for(OptionWrapper ow : wrappers) {
+        for (OptionWrapper ow : wrappers) {
             options.addOption(ow.getOption());
+            wrapperMap.put(ow.getOption().getLongOpt(), ow);
         }
     }
 
-    public boolean parse(String[] args, Fallback error) {
+    public int parse(String[] args, Fallback error) {
         String[] actualArgs = ArrayUtil.combineArgsWithSpaces(args);
-
-        for (OptionWrapper ow : wrappers) { wrapperMap.put(ow.getOption().getLongOpt(), ow); }
         CommandLineParser parser = new DefaultParser();
         try {
             cmd = parser.parse(options, actualArgs);
+            for (String a : actualArgs) {
+                Option o = options.getOption(a);
+                if (o == null) continue;
+                String n = o.getLongOpt();
+                String v = get(n);
+                if (v != null) {
+                    Class<?> type = wrapperMap.get(n).getOption().getActualType();
+                    if (Checks.isNumber(type) && !Checks.isNumberOfType(type, v)) {
+                        if (Checks.isNotNull(error)) error.onError(utilityName, options);
+                        return Errors.COMMAND_PARSER_NUMBER_EXPECTED;
+                    }
+                }
+            }
         } catch (ParseException ex) {
-            error.onError(utilityName, options);
-            return false;
+            if (Checks.isNotNull(error)) error.onError(utilityName, options);
+            return Errors.COMMAND_PARSER_CLI_FAILURE;
         }
-        
-        return true;
+
+        return Errors.SUCCESS;
 
     }
 
-    public String formatHelp(String cmdNameAndSyntax, Options options) {
+    public int parse(String[] args) {
+        return parse(args, null);
+    }
+
+    public String formatHelp() {
         Helper help = new Helper();
-        return help.getFormatted(cmdNameAndSyntax, options);
+        return help.getFormatted(utilityName, options);
     }
 
     // TODO Create overloaded methods for int, long, etc
     // get(String name, Class<?> type)
     public String get(String name) {
-        if(cmd == null) return null;
+        if (cmd == null) return null;
+        if (!wrapperMap.containsKey(name)) return null;
+        if (!wrapperMap.get(name).getOption().hasArg()) return Boolean.toString(cmd.hasOption(name));
         return cmd.getOptionValue(name, wrapperMap.get(name).getDefaultValue());
     }
 
+    public String getUtilityName() { return this.utilityName; }
 
+    public Options getOptions() { return this.options; }
 
     @FunctionalInterface
     public interface Fallback {

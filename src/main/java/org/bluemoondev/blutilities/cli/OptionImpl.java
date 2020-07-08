@@ -14,32 +14,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.bluemoondev.blutilities.annotations;
+package org.bluemoondev.blutilities.cli;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.*;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.apache.commons.cli.Option;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
- * <strong>File:</strong> Command.java<br>
+ * <strong>File:</strong> OptionImpl.java<br>
  * <p>
- * TODO: Add description
+ * Fixes a few bugs from Apache Commons CLI Option class
  * </p>
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-@Retention(RUNTIME)
-@Target(TYPE)
-@Documented
-public @interface Command {
+public class OptionImpl extends Option {
     
-    public String name();
-    public boolean subCmds() default false;
-    public boolean useCli() default false;
-    public boolean allowNoArgs() default false;
+    private Class<?> actualType;
+
+
+    public OptionImpl(String opt, String longOpt, boolean hasArg, String description) throws IllegalArgumentException {
+        super(opt, longOpt, hasArg, description);
+        actualType = String.class;
+    }
+    
+    public void setActualType(Class<?> type) {
+        actualType = type;
+    }
+    
+    public Class<?> getActualType(){
+        return actualType;
+    }
 
 }
