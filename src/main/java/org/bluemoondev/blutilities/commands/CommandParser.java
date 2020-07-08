@@ -29,6 +29,7 @@ import org.bluemoondev.blutilities.collections.ArrayUtil;
 import org.bluemoondev.blutilities.collections.UnmodifiableBiPair;
 import org.bluemoondev.blutilities.errors.Checks;
 import org.bluemoondev.blutilities.errors.Errors;
+import org.bluemoondev.blutilities.errors.exceptions.CommandException;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
@@ -54,7 +55,7 @@ public class CommandParser {
     private boolean useCli;
     private int     numArgsRequired;
 
-    public CommandParser(Class<?> clazz) {
+    public CommandParser(Class<?> clazz, Command cmd) {
         argParsers = new HashMap<>();
         values = new HashMap<>();
         argNames = new HashMap<>();
@@ -62,14 +63,23 @@ public class CommandParser {
         subCommands = new ArrayList<>();
         defaultValues = new HashMap<>();
         helpMap = new HashMap<>();
-        
-        
-        init(clazz);
+
+        init(clazz, cmd);
     }
 
-    private void init(Class<?> clazz) {
-        if (!clazz.isAnnotationPresent(Command.class)) return;
-        Command c = clazz.getAnnotation(Command.class);
+    public CommandParser(Class<?> clazz) {
+        this(clazz, null);
+    }
+
+    private void init(Class<?> clazz, Command cmd) {
+        Command c = cmd;
+        if (c == null) {
+            if (!clazz.isAnnotationPresent(Command.class)) {
+                throw new CommandException(Errors.COMMAND_EXPECTED_ANNOTATION,
+                                           "A Command Parser cannot be created for a class with no @Command annotation");
+            }
+            c = clazz.getClass().getAnnotation(Command.class);
+        }
         if (c.allowNoArgs()) return;
         name = c.name();
         useCli = c.useCli();
@@ -89,7 +99,7 @@ public class CommandParser {
                     if (args.containsKey(subCmd)) {
                         args.get(subCmd).first.addOption(ow);
                         args.get(subCmd).second.add(ow);
-                    }else {
+                    } else {
                         subCommands.add(ow.getCmd());
                         args.put(subCmd, new UnmodifiableBiPair<Options, List<OptionImpl>>(new Options(),
                                                                                            new ArrayList<OptionImpl>()));
@@ -246,10 +256,12 @@ public class CommandParser {
         if (!argParsers.containsKey(subCmd)) { return getHelp(); }
         return helpMap.get(subCmd);
     }
-    
+
     public String getName() { return this.name; }
-    
-    public boolean hasSubCommands() { return this.hasSubCommands; }
+
+    public boolean hasSubCommands() {
+        return this.hasSubCommands;
+    }
 
     @FunctionalInterface
     public interface CommandFallback {

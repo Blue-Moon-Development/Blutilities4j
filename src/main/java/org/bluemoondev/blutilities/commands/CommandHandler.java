@@ -55,7 +55,7 @@ public class CommandHandler {
         }
         Command c = cmd.getClass().getAnnotation(Command.class);
         if (!c.allowNoArgs()) {
-            CommandParser parser = new CommandParser(cmd.getClass());
+            CommandParser parser = new CommandParser(cmd.getClass(), c);
             parsers.put(parser.getName(), parser);
         }
         commands.put(c.name(), cmd);
