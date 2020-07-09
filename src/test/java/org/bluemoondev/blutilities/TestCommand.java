@@ -34,8 +34,12 @@ public class TestCommand implements ICommand {
     private String name;
 
     @Argument(name = "age", shortcut = "a", required = false, defaultValue = "18", desc = "Student's age",
-              cmd = "create")
+            cmd = "create")
     private int age;
+    @Argument(name = "idk", shortcut = "i", desc = "I dnt even know", cmd = "create")
+    private String idk;
+    
+    
 
     @Argument(name = "gpa", shortcut = "g", required = false, defaultValue = "3.0",
               desc = "Student's grade point average", cmd = "edit")
@@ -46,6 +50,7 @@ public class TestCommand implements ICommand {
             case "create":
                 System.out.println("Name: " + name);
                 System.out.println("Age: " + age);
+                System.out.println("Something: " + idk);
             break;
             case "edit":
                 System.out.println("GPA: " + gpa);
@@ -58,6 +63,7 @@ public class TestCommand implements ICommand {
             case "create":
                 name = parser.get("name");
                 age = Integer.parseInt(parser.get("age"));
+                idk = parser.get("idk");
             break;
             case "edit":
                 gpa = Double.parseDouble(parser.get("gpa"));

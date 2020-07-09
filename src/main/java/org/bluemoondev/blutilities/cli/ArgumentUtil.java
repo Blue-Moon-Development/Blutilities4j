@@ -35,7 +35,9 @@ import org.bluemoondev.blutilities.collections.UnmodifiableBiPair;
 public class ArgumentUtil {
 
     public static UnmodifiableBiPair<Options, List<OptionImpl>> getArguments(Class<?> clazz) {
+        Options optsReq = new Options();
         Options opts = new Options();
+        List<OptionImpl> implsReq = new ArrayList<>();
         List<OptionImpl> impls = new ArrayList<>();
         for (Field f : clazz.getDeclaredFields()) {
             if (f.isAnnotationPresent(Argument.class)) {
@@ -48,12 +50,28 @@ public class ArgumentUtil {
                         .attachToCmd(a.cmd())
                         .setDefaultValue(a.defaultValue())
                         .setRegex(a.regex());
-                impls.add(o);
-                opts.addOption(o);
+                if (a.required()) {
+                    implsReq.add(o);
+                    optsReq.addOption(o);
+                }else {
+                    impls.add(o);
+                    opts.addOption(o);
+                }
             }
         }
-
-        return new UnmodifiableBiPair<Options, List<OptionImpl>>(opts, impls);
+        
+        Options options = new Options();
+        List<OptionImpl> optionImpls = new ArrayList<>();
+        for(OptionImpl o : implsReq) {
+            optionImpls.add(o);
+            options.addOption(o);
+        }
+        
+        for(OptionImpl o : impls) {
+            optionImpls.add(o);
+            options.addOption(o);
+        }
+        return new UnmodifiableBiPair<Options, List<OptionImpl>>(options, optionImpls);
     }
 
 }

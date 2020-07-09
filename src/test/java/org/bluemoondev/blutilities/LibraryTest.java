@@ -10,7 +10,7 @@ import java.io.File;
 import org.bluemoondev.blutilities.annotations.Argument;
 import org.bluemoondev.blutilities.commands.CommandHandler;
 import org.bluemoondev.blutilities.commands.CommandParser;
-import org.bluemoondev.blutilities.commands.ICommand;
+import org.bluemoondev.blutilities.commands.StandardCommandParser;
 import org.bluemoondev.blutilities.errors.Errors;
 import org.bluemoondev.blutilities.generics.AbstractType;
 import org.bluemoondev.blutilities.generics.GenericsUtil;
@@ -19,91 +19,8 @@ import org.junit.Test;
 
 public class LibraryTest {
 
-    @Argument(name = "name", shortcut = "n", required = true)
-    private String testArg;
-
-    @Argument(name = "age", shortcut = "a")
-    private int testArg2;
-
     public void testSomeLibraryMethod() {
         assertTrue("someLibraryMethod should return 'true'", Blutil.justATest("true"));
-    }
-
-    public void testType() {
-        File a = getInteger();
-        System.out.println(a);
-    }
-
-    public void testPType() {
-        boolean foo = getObj(true);
-    }
-
-    public <T> T getInteger() {
-        IType type = new AbstractType<T>() {};
-        System.out.println(type.getTypeClass());
-
-        return null;
-    }
-
-    public <T> T getObj(T something) {
-        System.out.println(GenericsUtil.getClass(something));
-        return something;
-    }
-
-    @Test
-    public void testArgParser() {
-        // -n "John Smith" -a 27
-        // String[] passedArgs = {"create", "-n", "\"John", "Smith\"", "--age", "27"};
-        // String[] passedArgs = {"\"John", "Smith\"", "27"};
-        // String[] passedArgs = {"create", "\"John", "Smith\"", "27"};
-        String[] passedArgs = { "edit", "2.37" };
-        TestCommand cmd = new TestCommand();
-        CommandParser cmdParser = new CommandParser(TestCommand.class);
-        cmdParser.parse(passedArgs, true, error -> {
-            if (error == Errors.SUCCESS) {
-                cmd.preRun(passedArgs[0], cmdParser);
-                cmd.run(passedArgs[0]);
-            } else {
-                System.err.println("Non CLI command failed! " + error);
-                System.err.println(cmdParser.getHelp(passedArgs[0]));
-                // System.err.println(cmdParser.getHelp());
-            }
-        });
-    }
-
-    @Test
-    public void testCliArgParser() {
-        String msg = "-p 3.1415 -s \"So this is how its going to be, eh?\" some extra stuff -f 21 then the number";
-        String[] args = msg.split(" ");
-        TestCLICommand cmd = new TestCLICommand();
-        CommandParser parser = new CommandParser(TestCLICommand.class);
-        parser.parse(args, true, error -> {
-            if (error == Errors.SUCCESS) {
-                cmd.preRun(null, parser);
-                cmd.run();
-            } else {
-                System.err.println("CLI command failed! " + error);
-                System.err.println(parser.getHelp());
-            }
-        });
-    }
-
-    @Test
-    public void testCliSubArgParser() {
-        String msg = "create so like --test yeah -s \"hello this is a sentence. How are you doing?\" and stuff";
-        // String msg = "edit -l 45565";
-        String[] args = msg.split(" ");
-        TestCliSubCommand cmd = new TestCliSubCommand();
-        CommandParser parser = new CommandParser(TestCliSubCommand.class);
-        parser.parse(args, true, error -> {
-            if (error == Errors.SUCCESS) {
-                cmd.preRun(args[0], parser);
-                cmd.run(args[0]);
-            } else {
-                System.err.println("CLI command with sub cmds failled! " + error);
-                System.err.println(parser.getHelp(args[0]));
-            }
-        });
     }
 
     public static void main(String[] args) {
@@ -113,7 +30,7 @@ public class LibraryTest {
         for (Errors e : Errors.values()) { System.out.println(e); }
 
         TestCLICommand cmd = new TestCLICommand();
-//        ICommand cmd = new BadCommand();
+        // ICommand cmd = new BadCommand();
         CommandHandler handler = new CommandHandler();
         handler.addCommand(cmd);
         String msg = "-p 3.1415 -s \"So this is how its going to be, eh?\" some extra stuff -f 21 then the number";
@@ -121,6 +38,16 @@ public class LibraryTest {
         handler.execute("cli", passedArgs, true, (s, a) -> {
             cmd.run();
         });
+
+        TestCommand testCmd = new TestCommand();
+        handler.addCommand(testCmd);
+        msg = "create \"John Smith\" somethingidkwhat 27";
+        passedArgs = msg.split(" ");
+        Errors e = handler.execute("test", passedArgs, true, (s, a) -> {
+            testCmd.run(s);
+        });
+        
+        if(e.getCode() != 0) System.err.println(e);
     }
 
 }

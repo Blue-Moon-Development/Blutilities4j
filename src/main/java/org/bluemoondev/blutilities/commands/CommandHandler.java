@@ -13,15 +13,12 @@
  */
 package org.bluemoondev.blutilities.commands;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bluemoondev.blutilities.annotations.Command;
 import org.bluemoondev.blutilities.collections.ArrayUtil;
-import org.bluemoondev.blutilities.commands.CommandParser.CommandFallback;
 import org.bluemoondev.blutilities.errors.Errors;
 import org.bluemoondev.blutilities.errors.exceptions.CommandException;
 
@@ -55,28 +52,31 @@ public class CommandHandler {
         }
         Command c = cmd.getClass().getAnnotation(Command.class);
         if (!c.allowNoArgs()) {
-            CommandParser parser = new CommandParser(cmd.getClass(), c);
-            parsers.put(parser.getName(), parser);
+            CommandParser parser = null;
+            if(c.useCli())
+                parser = new CliCommandParser(cmd.getClass(), c);
+            else parser = new StandardCommandParser(cmd.getClass(), c);
+            parsers.put(c.name(), parser);
         }
+        
         commands.put(c.name(), cmd);
         subCommandMap.put(c.name(), c.subCmds());
     }
 
     public Errors execute(String cmd, String[] args, boolean canRun, CommandConsumer consumer) {
-        CommandParser p = parsers.get(cmd);
         ICommand c = commands.get(cmd);
         Errors[] ret = new Errors[1];
         ret[0] = Errors.SUCCESS;
         if (c == null) return Errors.COMMAND_HANDLER_INVALID_COMMAND;
-        if (p != null) {
-            p.parse(args, canRun, error -> {
+        if (parsers.get(cmd) != null) {
+            parsers.get(cmd).parse(args, canRun, error -> {
                 ret[0] = error;
                 if (error == Errors.SUCCESS || error == Errors.NO_ERROR) {
-                    if (p.hasSubCommands()) {
-                        c.preRun(args[0], p);
+                    if (parsers.get(cmd).hasSubCommands()) {
+                        c.preRun(args[0], parsers.get(cmd));
                         consumer.consume(args[0], Arrays.copyOfRange(args, 1, args.length));
                     } else {
-                        c.preRun(null, p);
+                        c.preRun(null, parsers.get(cmd));
                         consumer.consume(null, args);
                     }
                 }
