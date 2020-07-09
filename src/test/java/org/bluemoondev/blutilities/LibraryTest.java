@@ -5,17 +5,15 @@ package org.bluemoondev.blutilities;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
-import org.bluemoondev.blutilities.annotations.Argument;
 import org.bluemoondev.blutilities.commands.CommandHandler;
-import org.bluemoondev.blutilities.commands.CommandParser;
-import org.bluemoondev.blutilities.commands.StandardCommandParser;
+import org.bluemoondev.blutilities.debug.Log;
 import org.bluemoondev.blutilities.errors.Errors;
-import org.bluemoondev.blutilities.generics.AbstractType;
-import org.bluemoondev.blutilities.generics.GenericsUtil;
-import org.bluemoondev.blutilities.generics.IType;
-import org.junit.Test;
+import org.bluemoondev.blutilities.errors.exceptions.CommandException;
 
 public class LibraryTest {
 
@@ -48,6 +46,19 @@ public class LibraryTest {
         });
         
         if(e.getCode() != 0) System.err.println(e);
+        
+        
+        
+        File f = new File("./test.txt");
+        try {
+            @SuppressWarnings("resource")
+            BufferedReader reader = new BufferedReader(new FileReader(f));
+        } catch (IOException ex) {
+            Log.error(LibraryTest.class, ex);
+        }
+        
+        Log.info(LibraryTest.class, "The commands returned an error code %s and stuff yo", e.toString());
+        Log.error(LibraryTest.class, new CommandException(Errors.COMMAND_PARSER_CLI_FAILURE, "just testing stuff"));
     }
 
 }
