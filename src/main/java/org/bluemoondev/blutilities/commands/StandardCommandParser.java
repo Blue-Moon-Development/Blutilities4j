@@ -59,7 +59,7 @@ public class StandardCommandParser extends CommandParser {
             Map<String, UnmodifiableBiPair<Options, List<OptionImpl>>> args = new HashMap<>();
             for (OptionImpl oi : wrappers) {
                 if (oi.getCmd() == null || oi.getCmd().equals(""))
-                    throw new CommandException(Errors.COMMAND_PARSER_INVALID_SUB_COMMAND,
+                    throw new CommandException(Errors.COMMAND_PARSER_EXPECTED_SUB_COMMAND,
                                                "The Command Handler is expecting sub commands,"
                                                        + " but there are arguments not attached to any");
                 String subCmd = oi.getCmd();

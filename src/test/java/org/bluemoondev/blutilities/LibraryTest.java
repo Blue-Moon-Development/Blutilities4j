@@ -25,7 +25,10 @@ public class LibraryTest {
         // new LibraryTest().testArgParser();
         // new LibraryTest().testCliArgParser();
         // new LibraryTest().testCliSubArgParser();
-        for (Errors e : Errors.values()) { System.out.println(e); }
+        Log.setOnErrorAction(() -> {
+            System.out.println("This stuff would get executed after a Log.error(...) call");
+        });
+        for (Errors e : Errors.values()) { Log.error(LibraryTest.class, e.toString()); }
 
         TestCLICommand cmd = new TestCLICommand();
         // ICommand cmd = new BadCommand();
