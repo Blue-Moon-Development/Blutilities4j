@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.commons.cli.Options;
 import org.bluemoondev.blutilities.annotations.Command;
-import org.bluemoondev.blutilities.cli.ArgumentParser;
 import org.bluemoondev.blutilities.cli.Helper;
 import org.bluemoondev.blutilities.cli.OptionImpl;
 import org.bluemoondev.blutilities.collections.ArrayUtil;
@@ -45,6 +44,7 @@ public class StandardCommandParser extends CommandParser {
 
     public StandardCommandParser(Class<?> clazz, Command cmd) {
         super(clazz, cmd);
+        
     }
 
     //TODO Sort arrays so that the required arguments are first
@@ -124,8 +124,6 @@ public class StandardCommandParser extends CommandParser {
                     if (newArgs.length < numArgsRequired) error = Errors.COMMAND_PARSER_NOT_ENOUGH_ARGS;
                     else {
                         int len = argNames.get(sub).length < newArgs.length ? argNames.get(sub).length : newArgs.length;
-                        System.out.println(ArrayUtil.formatArray(argTypes.get(sub)));
-                        System.out.println(ArrayUtil.formatArray(argNames.get(sub)));
                         for (int i = 0; i < len; i++) {
                             Class<?> type = argTypes.get(sub)[i];
                             if (Checks.isNumber(type))
@@ -133,6 +131,12 @@ public class StandardCommandParser extends CommandParser {
                                     error = Errors.COMMAND_PARSER_NUMBER_EXPECTED;
                                     break;
                                 }
+                            if(Checks.isBoolean(type)) {
+                                if(!newArgs[i].equalsIgnoreCase("true") && !newArgs[i].equalsIgnoreCase("false")) {
+                                    error = Errors.COMMAND_PARSER_BOOL_EXPECTED;
+                                    break;
+                                }
+                            }
                             values.put(sub + argNames.get(sub)[i], newArgs[i]);
                         }
                         if (error == Errors.SUCCESS && argNames.get(sub).length > newArgs.length) {

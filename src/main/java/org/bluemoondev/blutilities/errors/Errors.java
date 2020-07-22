@@ -37,7 +37,8 @@ public enum Errors {
     COMMAND_PARSER_NO_PERMISSION ( "No permission to run this command" ),
     COMMAND_EXPECTED_ANNOTATION ( "Expected to find @Command annotation" ),
     COMMAND_PARSER_EXPECTED_SUB_COMMAND ( "Expected argument annotation to have cmd set" ),
-    COMMAND_HANDLER_INVALID_COMMAND ( "Specified command is not part of the Command Handler in question" );
+    COMMAND_HANDLER_INVALID_COMMAND ( "Specified command is not part of the Command Handler in question" ),
+    COMMAND_PARSER_BOOL_EXPECTED ( "Argument was expected to be a boolean value" );
 
     public static final Errors NO_ERROR    = SUCCESS;
     public static final Errors UNKNOWN     = FAILURE;
@@ -57,7 +58,7 @@ public enum Errors {
 
     @Override
     public String toString() {
-        //0x%08X - standard 0x00000000 format
+        // 0x%08X - standard 0x00000000 format
         // Using 2 while still not many errors
         return "Error Code: " + String.format("0x%02X", code) + " (" + msg + ")";
     }

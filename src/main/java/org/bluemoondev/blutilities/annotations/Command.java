@@ -42,4 +42,6 @@ public @interface Command {
     public boolean useCli() default false;
     public boolean allowNoArgs() default false;
 
+    public String description();
+
 }

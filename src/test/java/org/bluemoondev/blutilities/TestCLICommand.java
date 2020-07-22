@@ -30,9 +30,10 @@ import org.bluemoondev.blutilities.commands.ICommand;
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-@Command(name = "cli", useCli = true)
+@Command(name = "cli", useCli = true, description = "This is a command to test CLI")
 public class TestCLICommand implements ICommand {
-    
+
+    // Short cuts need to be defined for cli commands
     @Argument(name = "pi", shortcut = "p", desc = "Mess with math and change Pi")
     private float pi;
 

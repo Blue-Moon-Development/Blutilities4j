@@ -27,7 +27,7 @@ import org.bluemoondev.blutilities.commands.ICommand;
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-@Command(name = "clisub", subCmds = true, useCli = true)
+@Command(name = "clisub", subCmds = true, useCli = true, description = "This is a command to test CLI with sub commands")
 public class TestCliSubCommand implements ICommand {
 
     @Argument(name = "sentence", shortcut = "s", desc = "Some sentence", cmd = "create")

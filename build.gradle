@@ -3,8 +3,9 @@
 plugins {
     id 'java-library'
     id 'eclipse'
+    id 'idea'
     id 'java'
-    id 'maven' // will be depricated and replaced by maven-publish in gradle 7.0
+    id 'maven-publish'
 }
 import org.apache.tools.ant.filters.ReplaceTokens
 import java.text.SimpleDateFormat
@@ -16,7 +17,7 @@ def major
 def minor
 def revision
 
-group = 'org.bluemoondev.blutilities'
+group = 'org.bluemoondev'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -57,9 +58,26 @@ eclipse {
 }
 
 java {
-  withJavadocJar()
+  //java docs will cause build to fail unless everything is correct formatted (no missing tags, proper html, etc)
+  //too lazy to do all that as I work, so this will only be done on release versions
+  //withJavadocJar()
   withSourcesJar()
 }
+
+publishing {
+  repositories {
+    maven {
+      url = 'build/tmp/my-repo'
+    }
+  }
+
+  publications {
+    myJava(MavenPublication){
+      from components.java
+    }
+  }
+}
+
 
 jar {
   manifest {
@@ -117,6 +135,23 @@ compileJava.doLast {
 }
 println 'Building ' + project.name + ', Version: ' + version
 
+task install {
+
+  doLast {
+    println 'Done...'
+  }
+}
+
+publish.doFirst{
+  println 'Executing maven-publish publish task...'
+}
+
+publishToMavenLocal.doFirst {
+  println 'Copying to local maven...'
+}
+
+publishToMavenLocal.dependsOn(publish)
+install.dependsOn(publishToMavenLocal)
 
 gradle.taskGraph.whenReady {taskGraph -> 
   if(taskGraph.hasTask(build)){

@@ -30,9 +30,6 @@ public class Blutil {
 
 	public static final String VERSION = "${version}";
 
-	public static boolean justATest(String bool) {
-		return bool.equalsIgnoreCase("true");
-	}
 
 	public static Class<?> getClassForPrimitive(Class<?> primitive) {
 		if (primitive.equals(Integer.TYPE)) return Integer.class;

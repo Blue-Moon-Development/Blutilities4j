@@ -35,10 +35,11 @@ import java.lang.annotation.Target;
  */
 public @interface Argument {
 	
-	public String shortcut();
-	
+
 	public String name();
-	
+
+	public String shortcut() default "";
+
 	public String desc() default "";
 	
 	public String cmd() default "";

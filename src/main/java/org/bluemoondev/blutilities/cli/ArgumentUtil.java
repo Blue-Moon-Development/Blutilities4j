@@ -13,15 +13,13 @@
  */
 package org.bluemoondev.blutilities.cli;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.commons.cli.Options;
 import org.bluemoondev.blutilities.Blutil;
 import org.bluemoondev.blutilities.annotations.Argument;
 import org.bluemoondev.blutilities.collections.UnmodifiableBiPair;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <strong>Project:</strong> Blutilities4j<br>
@@ -34,44 +32,47 @@ import org.bluemoondev.blutilities.collections.UnmodifiableBiPair;
  */
 public class ArgumentUtil {
 
-    public static UnmodifiableBiPair<Options, List<OptionImpl>> getArguments(Class<?> clazz) {
-        Options optsReq = new Options();
-        Options opts = new Options();
-        List<OptionImpl> implsReq = new ArrayList<>();
-        List<OptionImpl> impls = new ArrayList<>();
-        for (Field f : clazz.getDeclaredFields()) {
-            if (f.isAnnotationPresent(Argument.class)) {
-                Argument a = f.getAnnotation(Argument.class);
-                String desc = a.required() ? a.desc() : "[Optional] " + a.desc();
-                OptionImpl o = new OptionImpl(a.shortcut(), a.name(), a.hasArgs(), desc)
-                        .setOptional(!a.required())
-                        .setActualType(Blutil.getClassForPrimitive(f.getType()))
-                        .setArgTypeName(f.getType().getSimpleName())
-                        .attachToCmd(a.cmd())
-                        .setDefaultValue(a.defaultValue())
-                        .setRegex(a.regex());
-                if (a.required()) {
-                    implsReq.add(o);
-                    optsReq.addOption(o);
-                }else {
-                    impls.add(o);
-                    opts.addOption(o);
-                }
-            }
-        }
-        
-        Options options = new Options();
-        List<OptionImpl> optionImpls = new ArrayList<>();
-        for(OptionImpl o : implsReq) {
-            optionImpls.add(o);
-            options.addOption(o);
-        }
-        
-        for(OptionImpl o : impls) {
-            optionImpls.add(o);
-            options.addOption(o);
-        }
-        return new UnmodifiableBiPair<Options, List<OptionImpl>>(options, optionImpls);
-    }
+	public static UnmodifiableBiPair<Options, List<OptionImpl>> getArguments(Class<?> clazz) {
+		Options optsReq = new Options();
+		Options opts = new Options();
+		List<OptionImpl> implsReq = new ArrayList<>();
+		List<OptionImpl> impls = new ArrayList<>();
+		for (Field f : clazz.getDeclaredFields()) {
+			if (f.isAnnotationPresent(Argument.class)) {
+				Argument a = f.getAnnotation(Argument.class);
+				String desc = a.required() ? a.desc() : "[Optional] " + a.desc();
+				// If no short cut was given, use substring that would give ~half the normal command
+				String shortcut = a.shortcut().equalsIgnoreCase("") ? a.name().substring(0, a.name().length() / 2)
+																	: a.shortcut();
+				OptionImpl o = new OptionImpl(shortcut, a.name(), a.hasArgs(), desc)
+						.setOptional(!a.required())
+						.setActualType(Blutil.getClassForPrimitive(f.getType()))
+						.setArgTypeName(f.getType().getSimpleName())
+						.attachToCmd(a.cmd())
+						.setDefaultValue(a.defaultValue())
+						.setRegex(a.regex());
+				if (a.required()) {
+					implsReq.add(o);
+					optsReq.addOption(o);
+				} else {
+					impls.add(o);
+					opts.addOption(o);
+				}
+			}
+		}
+
+		Options options = new Options();
+		List<OptionImpl> optionImpls = new ArrayList<>();
+		for (OptionImpl o : implsReq) {
+			optionImpls.add(o);
+			options.addOption(o);
+		}
+
+		for (OptionImpl o : impls) {
+			optionImpls.add(o);
+			options.addOption(o);
+		}
+		return new UnmodifiableBiPair<Options, List<OptionImpl>>(options, optionImpls);
+	}
 
 }

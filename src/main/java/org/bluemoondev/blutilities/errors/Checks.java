@@ -205,5 +205,10 @@ public class Checks {
     public static boolean isNotNull(Object obj) {
         return obj != null;
     }
+    
+    
+    public static boolean isBoolean(Class<?> clazz) {
+        return clazz == Boolean.class || Blutil.getClassForPrimitive(clazz) == Boolean.class;
+    }
 
 }

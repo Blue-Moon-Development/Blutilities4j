@@ -27,16 +27,17 @@ import org.bluemoondev.blutilities.commands.ICommand;
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
-@Command(name = "test", useCli = false, subCmds = true)
+@Command(name = "test", useCli = false, subCmds = true, description = "This is a command to test non cli command and with sub commands")
 public class TestCommand implements ICommand {
 
-    @Argument(name = "name", shortcut = "n", desc = "Student's name", cmd = "create")
+    // Short cuts not required to be defined for non cli commands
+    @Argument(name = "name", desc = "Student's name", cmd = "create")
     private String name;
 
-    @Argument(name = "age", shortcut = "a", required = false, defaultValue = "18", desc = "Student's age",
+    @Argument(name = "age", required = false, defaultValue = "18", desc = "Student's age",
             cmd = "create")
     private int age;
-    @Argument(name = "idk", shortcut = "i", desc = "I dnt even know", cmd = "create")
+    @Argument(name = "idk", desc = "I dnt even know", cmd = "create")
     private String idk;
     
     
