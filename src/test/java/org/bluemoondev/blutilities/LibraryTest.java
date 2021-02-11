@@ -3,20 +3,13 @@
  */
 package org.bluemoondev.blutilities;
 
-import static org.junit.Assert.*;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 
-import org.bluemoondev.blutilities.commands.CommandHandler;
 import org.bluemoondev.blutilities.debug.Log;
 import org.bluemoondev.blutilities.errors.Errors;
-import org.bluemoondev.blutilities.errors.exceptions.CommandException;
-
-import ch.qos.logback.core.joran.spi.JoranException;
 
 public class LibraryTest {
     
@@ -27,53 +20,6 @@ public class LibraryTest {
     }
 
     public static void main(String[] args) {
-        // new LibraryTest().testArgParser();
-        // new LibraryTest().testCliArgParser();
-        // new LibraryTest().testCliSubArgParser();
-        Log.setOnErrorAction(() -> {
-            System.out.println("This stuff would get executed after a Log.error(...) call");
-        });
-        
-//        try {
-//            Log.setup("/blorg.xml");
-//        } catch (JoranException | IOException ex1) {
-//            LOG.error(ex1);
-//        }
-        
-        for (Errors e : Errors.values()) { LOG.error(e.toString()); }
-
-        TestCLICommand cmd = new TestCLICommand();
-        // ICommand cmd = new BadCommand();
-        CommandHandler handler = new CommandHandler();
-        handler.addCommand(cmd);
-        String msg = "-p 3.1415 -s \"So this is how its going to be, eh?\" some extra stuff -f 21 then the number";
-        String[] passedArgs = msg.split(" ");
-        handler.execute("cli", passedArgs, true, (s, a) -> {
-            cmd.run();
-        });
-
-        TestCommand testCmd = new TestCommand();
-        handler.addCommand(testCmd);
-        msg = "create \"John Smith\" somethingidkwhat 27";
-        passedArgs = msg.split(" ");
-        Errors e = handler.execute("test", passedArgs, true, (s, a) -> {
-            testCmd.run(s);
-        });
-
-        if (e.getCode() != 0) System.err.println(e);
-
-        File f = new File("./test.txt");
-        try {
-            @SuppressWarnings("resource")
-            BufferedReader reader = new BufferedReader(new FileReader(f));
-        } catch (FileNotFoundException ex) {
-            LOG.error(ex);
-        }
-
-        Log testLog = Log.get("Test Project Marker", LibraryTest.class);
-        testLog.info("This is a test");
-        Log testLog1 = Log.get("Second Test Project Marker", LibraryTest.class);
-        testLog1.info("This is another test");
     }
 
 }

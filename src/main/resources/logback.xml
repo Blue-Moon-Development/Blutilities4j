@@ -49,6 +49,31 @@
 
 	</appender>
 
+	<appender name="FILE-PROJECT"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${DEV_HOME}/project.log</file>
+		<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>
+				%d{[yyyy-MM-dd] [HH:mm:ss]} [%marker] [%thread] [%level] [%logger] - %msg%n
+			</Pattern>
+		</encoder>
+
+		<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${DEV_HOME}/archived/project.%d{yyyy-MM-dd}.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>10</maxHistory>
+			<cleanHistoryOnStart>true</cleanHistoryOnStart>
+		</rollingPolicy>
+
+	</appender>
+
 	<appender name="FILE-ERROR"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${DEV_HOME}/error.log</file>
@@ -78,6 +103,11 @@
 		additivity="false">
 		<appender-ref ref="FILE-ERROR" />
 		<appender-ref ref="STDERR" />
+	</logger>
+
+	<logger name="ProjectLogger" level="trace">
+		<appender-ref ref="FILE-PROJECT" />
+		<appender-ref ref="STDOUT" />
 	</logger>
 
 	<root level="trace">

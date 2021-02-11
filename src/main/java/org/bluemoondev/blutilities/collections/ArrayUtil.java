@@ -16,6 +16,8 @@ package org.bluemoondev.blutilities.collections;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bluemoondev.blutilities.Blutil;
 
@@ -23,12 +25,34 @@ import org.bluemoondev.blutilities.Blutil;
  * <strong>Project:</strong> Blutilities4j<br>
  * <strong>File:</strong> ArrayUtil.java<br>
  * <p>
- * TODO: Add description
+ * A set of utilities for working with arrays
  * </p>
  *
  * @author <a href = "https://bluemoondev.org"> Matt</a>
  */
 public class ArrayUtil {
+
+    /**
+     * Returns an array of tokens from the given string. Quotes are counted as a single token.
+     * @param text The string to create tokens from
+     * @return An array of tokens
+     */
+    public static String[] tokenizeQuoted(String text){
+        List<String> list = new ArrayList<>();
+        String regex = "\"([^\"]*)\"|(\\S+)";
+        Matcher m = Pattern.compile(regex).matcher(text);
+
+        while (m.find()) {
+            if (m.group(1) != null)
+                list.add(m.group(1));
+            else list.add(m.group(2));
+        }
+
+        String[] ret = new String[ list.size() ];
+        ret = list.toArray(ret);
+
+        return ret;
+    }
 
     /**
      * When arguments are provided such that they look like:
@@ -90,11 +114,24 @@ public class ArrayUtil {
         return arr;
     }
 
+    /**
+     * Checks if the array contains a certain value
+     * @param arr The array
+     * @param elem The value in question
+     * @param <T> The data type
+     * @return true if the array contains the value
+     */
     public static <T> boolean doesArrayContain(T[] arr, T elem) {
         for (T t : arr) { if (t.equals(elem)) return true; }
         return false;
     }
 
+    /**
+     * Formats an array to my preferred format to be printed
+     * @param arr The array
+     * @param <T> The type contained in the array
+     * @return The formatted string
+     */
     public static <T> String formatArray(T[] arr) {
         StringBuilder sb = new StringBuilder();
         sb.append("{ ");

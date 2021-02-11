@@ -52,12 +52,15 @@ public class Log {
 
     private final Class<?> clazz;
 
+
+
     private Log(String projectName, Class<?> clazz) {
         this.projectName = projectName;
         this.clazz = clazz;
         if (!markers.containsKey(projectName))
             markers.put(projectName, MarkerFactory.getMarker(projectName));
     }
+
 
     public void info(String format, Object... args) {
         if (!loggers.containsKey(clazz))
@@ -105,6 +108,7 @@ public class Log {
             errorConsumer.consume();
     }
 
+
     public void error(Throwable t) {
         error(t, t.getMessage());
     }
@@ -124,14 +128,14 @@ public class Log {
      * @throws JoranException If the configuration could not be executed
      * @throws IOException    If the configuration file could not be found
      */
-    public static void setup(String configPath) throws JoranException, IOException {
+    public static void setup(String configPath, Class<?> clazz) throws JoranException, IOException {
 //        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, configPath);
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         lc.reset();
-        JoranConfigurator conf = new JoranConfigurator();
-        conf.setContext(lc);
-        InputStream confStream = Log.class.getResourceAsStream(configPath);
-        conf.doConfigure(confStream);
+        InputStream confStream = clazz.getResourceAsStream(configPath);
+
+        new ContextInitializer(lc).configureByResource(clazz.getResource(configPath));
+
         confStream.close();
     }
 

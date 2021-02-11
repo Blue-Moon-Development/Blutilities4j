@@ -27,18 +27,7 @@ package org.bluemoondev.blutilities.errors;
 public enum Errors {
 
     SUCCESS ( "No error" ),
-    FAILURE ( "Failure" ),
-    COMMAND_PARSER_NOT_ENOUGH_ARGS ( "Insufficient number of arguments" ),
-    COMMAND_PARSER_NUMBER_EXPECTED ( "Argument was expected to be a number" ),
-    COMMAND_PARSER_NULL_OR_EMPTY_ARGS ( "A list of arguments was expected but could not be found. "
-            + "Argument list was NULL or EMPTY" ),
-    COMMAND_PARSER_INVALID_SUB_COMMAND ( "The sub command is invalid" ),
-    COMMAND_PARSER_CLI_FAILURE ( "CLI parsing failed" ),
-    COMMAND_PARSER_NO_PERMISSION ( "No permission to run this command" ),
-    COMMAND_EXPECTED_ANNOTATION ( "Expected to find @Command annotation" ),
-    COMMAND_PARSER_EXPECTED_SUB_COMMAND ( "Expected argument annotation to have cmd set" ),
-    COMMAND_HANDLER_INVALID_COMMAND ( "Specified command is not part of the Command Handler in question" ),
-    COMMAND_PARSER_BOOL_EXPECTED ( "Argument was expected to be a boolean value" );
+    FAILURE ( "Failure" );
 
     public static final Errors NO_ERROR    = SUCCESS;
     public static final Errors UNKNOWN     = FAILURE;
